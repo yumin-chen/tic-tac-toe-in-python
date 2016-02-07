@@ -11,18 +11,35 @@ else:
 	# Ask the user to input port number
 	port_number = raw_input('Please enter the port:');
 
-print('Echo Server Started.');
-
 # Create the socket object, the first parameter AF_INET is for IPv4 networking, the second identifies the socket type, SOCK_STREAM is for TCP protocal
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 
-# Bind to an address (localhost) with the port being 6666
-server_socket.bind(('localhost', int(port_number)));
-print('Reserved port ' + port_number);
+# Keep repeating connecting to the server
+while True:
 
-# Start listening to the binded address
-server_socket.listen(1);
-print('Listening to port ' + port_number);
+	try:
+		# Bind to an address (localhost) with the port being 6666
+		server_socket.bind(('localhost', int(port_number)));
+		print('Reserved port ' + port_number);
+
+		# Start listening to the binded address
+		server_socket.listen(1);
+		print('Listening to port ' + port_number);
+
+		# Break the while loop if no error is caught
+		break;
+
+	except:
+		# Caught an error
+		print("There is an error when trying to bind localhost::" + port_number);
+
+		# Ask the user what to do with the error
+		choice = raw_input('[A]bort, [C]hange port, or [R]etry?');
+
+		if(choice.lower() == "a"):
+			exit();
+		elif(choice.lower() == "c"):
+			port_number = raw_input('Please enter the port:');
 
 # Accept a connection from a client
 connection, client_address = server_socket.accept();

@@ -16,10 +16,32 @@ else:
 # Create the socket object, the first parameter AF_INET is for IPv4 networking, the second identifies the socket type, SOCK_STREAM is for TCP protocal
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 
-print('Connecting to the port ' + port_number);
+# Keep repeating connecting to the server
+while True:
 
-# Connect to the local host and use the port the user provided
-client_socket.connect((address, int(port_number)));
+	try:
+
+		print('Connecting to ' + address + "::" + port_number);
+
+		# Connect to the specified host and port 
+		client_socket.connect((address, int(port_number)));
+
+		# Break the while loop if no error is caught
+		break;
+
+	except:
+
+		# Caught an error
+		print('There is an error when trying to connect to ' + address + "::" + port_number);
+
+		# Ask the user what to do with the error
+		choice = raw_input('[A]bort, [C]hange address and port, or [R]etry?');
+
+		if(choice.lower() == "a"):
+			exit();
+		elif(choice.lower() == "c"):
+			address = raw_input('Please enter the address:');
+			port_number = raw_input('Please enter the port:');
 
 while True:
 	# Prompt the user to enter the message being sent
