@@ -44,22 +44,6 @@ while True:
 print(client_socket.recv(1024).decode());
 
 while True:
-	# Prompt the user to enter the message being sent
-	message = input("Please enter the message (q to quit):");
-
-	# Print the message being sent onto the screen
-	print(message);
-
-	# Encode the message being sent
-	data_out = message.encode();
-
-	# Send the message to the server
-	client_socket.send(data_out);
-
-	# If the user enters q, then break the loop and disconnect
-	if(message == "q"):
-		break;
-
 	# Receive message from the server with message size being 1024 bytes
 	data_in = client_socket.recv(1024);
 
