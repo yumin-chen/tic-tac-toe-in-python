@@ -42,16 +42,54 @@ while True:
 
 # Print the welcome message from the server
 print(client_socket.recv(1024).decode());
+# Print the match info from the server
+print(client_socket.recv(1024).decode());
+# Confirm to the server that this player is ready to start
+client_socket.send("Ready".encode());
+
+# Format the Grid Board
+def formatBoard(s):
+	# If the length of the string is not 9
+	if(len(s) != 9):
+		# Then print out an error message
+		print("Error: there should be 9 symbols.");
+		return "";
+
+	# Draw the grid board
+	#print("|1|2|3|");
+	#print("|4|5|6|");
+	#print("|7|8|9|");
+	return "|" + s[0] + "|" + s[1]  + "|" + s[2] + "|\n" + "|" + s[3] + "|" + s[4]  + "|" + s[5] + "|\n" + "|" + s[6] + "|" + s[7]  + "|" + s[8] + "|\n";
 
 while True:
-	# Receive message from the server with message size being 1024 bytes
-	data_in = client_socket.recv(1024);
 
-	# Decode the message being received
-	message = data_in.decode();
+	# Get the board content from the server
+	board_content = client_socket.recv(16).decode();
+	# Print out the current board
+	print("Current board:\n" + formatBoard(board_content));
 
-	# Print the message onto the screen
-	print(message);
+	# Get from the server whether it's my turn to move
+	is_my_turn = client_socket.recv(4).decode();
+
+	# If the assigned role is X
+	if(is_my_turn == "Y"):
+
+		while True:
+			# Prompt the user to enter a position
+			position = int(input('Please enter the position (1~9):'));
+
+			if(position >= 1 and position <= 9):
+				# If the user input is valid, break the loop
+				break;
+			# Else, loop until the user enters a valid value
+
+		# Send the position back to the server
+		client_socket.send(str(position).encode());
+
+	else:
+		# This player waits the other player to make move
+		print("Waiting for the other player to make a move...");
+
 
 # Shut down the socket to prevent further sends/receives
 client_socket.shutdown(socket.SHUT_RDWR);
