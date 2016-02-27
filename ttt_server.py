@@ -86,6 +86,40 @@ def matchingPlayer(player):
 	# Return None if nothing is found
 	return None;
 
+# Check if the player wins the game. Return value - 1: Win; 0:Draw; -1:No result yet
+def checkWinner(game, player):
+	s = game.board_content;
+
+	# Check columns
+	if(len(set([s[0], s[1], s[2], player.role])) == 1):
+		return 1;
+	if(len(set([s[3], s[4], s[5], player.role])) == 1):
+		return 1;
+	if(len(set([s[6], s[7], s[8], player.role])) == 1):
+		return 1;
+
+	# Check rows
+	if(len(set([s[0], s[3], s[6], player.role])) == 1):
+		return 1;
+	if(len(set([s[1], s[4], s[7], player.role])) == 1):
+		return 1;
+	if(len(set([s[2], s[5], s[8], player.role])) == 1):
+		return 1;
+
+	# Check diagonal
+	if(len(set([s[0], s[4], s[8], player.role])) == 1):
+		return 1;
+	if(len(set([s[2], s[4], s[6], player.role])) == 1):
+		return 1;
+
+	# If there's no empty position left, draw
+	if " " not in s:
+		return 0;
+
+	# The result cannot be determined yet
+	return -1;
+
+# Make a move
 def gameMove(game, moving_player, waiting_player):
 	# Send both players the current board content
 	moving_player.connection.send(("".join(game.board_content)).encode());
@@ -95,8 +129,26 @@ def gameMove(game, moving_player, waiting_player):
 	waiting_player.connection.send("N".encode());
 	# Receive the move from the moving player
 	move = int(moving_player.connection.recv(1).decode());
+	# Send the move to the waiting player
+	waiting_player.connection.send(str(move).encode());
 	# Write the "X" into the board
 	game.board_content[move - 1] = moving_player.role;
+	# Check if this will result in a win
+	result = checkWinner(game, moving_player);
+	if(result != -1):
+		if(result == 0):
+			moving_player.connection.send(("".join(game.board_content)).encode());
+			waiting_player.connection.send(("".join(game.board_content)).encode());
+			moving_player.connection.send("D".encode());
+			waiting_player.connection.send("D".encode());
+			return True;
+		if(result == 1):
+			moving_player.connection.send(("".join(game.board_content)).encode());
+			waiting_player.connection.send(("".join(game.board_content)).encode());
+			moving_player.connection.send("W".encode());
+			waiting_player.connection.send("L".encode());
+			return True;
+		return False;
 
 def gameThread(game):
 	# Send both players the match info
@@ -113,9 +165,11 @@ def gameThread(game):
 
 	while True:
 		# Player 1 move
-		gameMove(game, game.player1, game.player2);
+		if(gameMove(game, game.player1, game.player2)):
+			return;
 		# Player 2 move
-		gameMove(game, game.player2, game.player1);
+		if(gameMove(game, game.player2, game.player1)):
+			return;
 
 
 # The client thread for each player 
@@ -142,8 +196,6 @@ def clientThread(player):
 				new_game.player2 = match_result;
 				# Create an empty string for empty board content
 				new_game.board_content = list("         ");
-				# This is for counting turns, as Tic Tac Toe is a turn-based game
-				new_game.turns = 0;
 
 				# This thread then deals with the game instead
 				gameThread(new_game);

@@ -72,35 +72,64 @@ def formatBoard(s):
 while True:
 
 	# Get the board content from the server
-	board_content = client_socket.recv(16).decode();
-
+	board_content = client_socket.recv(9).decode();
 	# Get from the server whether it's my turn to move
-	is_my_turn = client_socket.recv(4).decode();
+	command = client_socket.recv(1).decode();
 
-	# If the assigned role is X
-	if(is_my_turn == "Y"):
-
+	# If it's this player's turn to move
+	if(command == "Y"):
 		# Print out the current board with " " converted to the position number
 		print("Current board:\n" + formatBoard(convertEmptyBoardPosition(board_content)));
+	else:
+		# Print out the current board
+		print("Current board:\n" + formatBoard(board_content));
 
+	# If it's this player's turn to move
+	if(command == "Y"):
 		while True:
 			# Prompt the user to enter a position
 			position = int(input('Please enter the position (1~9):'));
 
 			if(position >= 1 and position <= 9):
-				# If the user input is valid, break the loop
-				break;
+
+				if(board_content[position - 1] != " "):
+					# If the position is already been taken, print out a warning
+					print("That position has already been taken. Please choose another one.");
+
+				else:
+					# If the user input is valid, break the loop
+					break;
+			else:
+				print("Please enter a value between 1 and 9 that corresponds to the position on the grid board.");
 			# Else, loop until the user enters a valid value
 
 		# Send the position back to the server
 		client_socket.send(str(position).encode());
 
-	else:
-		# Print out the current board
-		print("Current board:\n" + formatBoard(board_content));
+	# If the player needs to just wait
+	elif(command == "N"):
 
 		# This player waits the other player to make move
 		print("Waiting for the other player to make a move...");
+
+		# Get the move that the other player made from the server 
+		move = client_socket.recv(1).decode();
+		print("Your opponent took up number " + move);
+
+	# If the result is a draw
+	elif(command == "D"):
+		print("It's a draw.");
+		break;
+
+	# If this player wins
+	elif(command == "W"):
+		print("You WIN!");
+		break;
+
+	# If this player loses
+	elif(command == "L"):
+		print("You lose.");
+		break;
 
 
 # Shut down the socket to prevent further sends/receives
