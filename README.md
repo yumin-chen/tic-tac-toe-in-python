@@ -35,7 +35,7 @@ Please see the file [docs/REFERENCES.md](docs/REFERENCES.md).
 
 Licensing
 ------------------------
-Please see the file named [LICENSE](LICENSE).
+Please see the file named [LICENSE.md](LICENSE.md).
 
 
 Author

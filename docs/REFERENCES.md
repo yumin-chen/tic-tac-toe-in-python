@@ -11,7 +11,7 @@ Here is a list of external sources that I learned from during this project.
 	<http://stackoverflow.com/questions/1228299/change-one-character-in-a-string-in-python>  
 
 
-* Python Tutorial: Classes - Odds and Ends
+* Python Tutorial: Classes - Odds and Ends  
 	<https://docs.python.org/2/tutorial/classes.html#odds-and-ends>  
 
 
