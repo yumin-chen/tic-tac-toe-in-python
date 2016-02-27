@@ -19,5 +19,9 @@ Here is a list of external sources that I learned from during this project.
 	<http://stackoverflow.com/questions/510348/how-can-i-make-a-time-delay-in-python>  
 
 
-* Thread Synchronization Mechanisms in Python
+* Thread Synchronization Mechanisms in Python  
 	<http://effbot.org/zone/thread-synchronization.htm>  
+
+
+* Stack overflow: Multiple Clients Cannot Listen and Write at the Same Time  
+	<http://stackoverflow.com/questions/28879706/multiple-clients-cannot-listen-and-write-at-the-same-time>  
