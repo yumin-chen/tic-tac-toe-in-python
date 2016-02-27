@@ -86,6 +86,18 @@ def matchingPlayer(player):
 	# Return None if nothing is found
 	return None;
 
+def gameMove(game, moving_player, waiting_player):
+	# Send both players the current board content
+	moving_player.connection.send(("".join(game.board_content)).encode());
+	waiting_player.connection.send(("".join(game.board_content)).encode());
+	# Let the moving player move, Y stands for yes it's turn to move, and N stands for no and waiting
+	moving_player.connection.send("Y".encode());
+	waiting_player.connection.send("N".encode());
+	# Receive the move from the moving player
+	move = int(moving_player.connection.recv(1).decode());
+	# Write the "X" into the board
+	game.board_content[move - 1] = moving_player.role;
+
 def gameThread(game):
 	# Send both players the match info
 	game.player1.sendMatchInfo();
@@ -100,27 +112,10 @@ def gameThread(game):
 		print("Error occured.");
 
 	while True:
-		# Send both players the current board content
-		game.player1.connection.send(("".join(game.board_content)).encode());
-		game.player2.connection.send(("".join(game.board_content)).encode());
-		# Let player 1 to move first, Y stands for yes it's turn to move
-		game.player1.connection.send("Y".encode());
-		game.player2.connection.send("N".encode());
-		# Receive the move from player 1
-		move = int(game.player1.connection.recv(4).decode());
-		# Write the "X" into the board
-		game.board_content[move - 1] = "X";
-
-		# Send both players the current board content
-		game.player1.connection.send(("".join(game.board_content)).encode());
-		game.player2.connection.send(("".join(game.board_content)).encode());
-		# Let player 2 to move 
-		game.player1.connection.send("N".encode());
-		game.player2.connection.send("Y".encode());
-		# Receive the move from player 1
-		move = int(game.player2.connection.recv(4).decode());
-		# Write the "X" into the board
-		game.board_content[move - 1] = "O";
+		# Player 1 move
+		gameMove(game, game.player1, game.player2);
+		# Player 2 move
+		gameMove(game, game.player2, game.player1);
 
 
 # The client thread for each player 
@@ -146,7 +141,7 @@ def clientThread(player):
 				new_game.player1 = player;
 				new_game.player2 = match_result;
 				# Create an empty string for empty board content
-				new_game.board_content = list("123456789");
+				new_game.board_content = list("         ");
 				# This is for counting turns, as Tic Tac Toe is a turn-based game
 				new_game.turns = 0;
 

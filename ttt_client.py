@@ -47,6 +47,14 @@ print(client_socket.recv(1024).decode());
 # Confirm to the server that this player is ready to start
 client_socket.send("Ready".encode());
 
+# This functon converts empty board position " " to its corresponding position index
+def convertEmptyBoardPosition(s):
+	new_s = list("123456789");
+	for i in range(0, 8):
+		if(s[i] != " "):
+			new_s[i] = s[i];
+	return "".join(new_s);
+
 # Format the Grid Board
 def formatBoard(s):
 	# If the length of the string is not 9
@@ -65,14 +73,15 @@ while True:
 
 	# Get the board content from the server
 	board_content = client_socket.recv(16).decode();
-	# Print out the current board
-	print("Current board:\n" + formatBoard(board_content));
 
 	# Get from the server whether it's my turn to move
 	is_my_turn = client_socket.recv(4).decode();
 
 	# If the assigned role is X
 	if(is_my_turn == "Y"):
+
+		# Print out the current board with " " converted to the position number
+		print("Current board:\n" + formatBoard(convertEmptyBoardPosition(board_content)));
 
 		while True:
 			# Prompt the user to enter a position
@@ -87,6 +96,9 @@ while True:
 		client_socket.send(str(position).encode());
 
 	else:
+		# Print out the current board
+		print("Current board:\n" + formatBoard(board_content));
+
 		# This player waits the other player to make move
 		print("Waiting for the other player to make a move...");
 
