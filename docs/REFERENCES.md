@@ -3,8 +3,12 @@ References
 Here is a list of external sources that I learned from during this project.
 
 
-* Stack overflow: Are there side effects in python using "if a == b == c: pass;"?  
-	<http://stackoverflow.com/questions/6304509/are-there-sideeffects-in-python-using-if-a-b-c-pass>  
+* Tutorials Point: Python Tkinter Canvas  
+	<http://www.tutorialspoint.com/python/tk_canvas.htm>  
+
+
+* Tutorials Point: Python GUI Programming (Tkinter)  
+	<http://www.tutorialspoint.com/python/python_gui_programming.htm>  
 
 
 * Stack overflow: Change one character in a string in Python?  
