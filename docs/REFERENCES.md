@@ -1,6 +1,10 @@
 References
 ========================
-Here is a list of external sources that I learned from during this project.
+Here is a list of external sources that I learned from when I was doing this project.
+
+
+* Stack overflow: Call to operating system to open url?  
+	<http://stackoverflow.com/questions/4216985/call-to-operating-system-to-open-url>  
 
 
 * effbot.org: tkinterbook :: Events and Bindings  

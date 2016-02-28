@@ -2,6 +2,8 @@
 import tkinter
 # Import the messagebox module explicitly
 from tkinter import messagebox
+# Import the webbroswer module for opening a link
+import webbrowser
 
 # Constants 
 C_WINDOW_WIDTH = 640;
@@ -11,6 +13,42 @@ C_WINDOW_MIN_HEIGHT = 360;
 C_COLOR_BLUE_LIGHT = "#e4f1fe";
 C_COLOR_BLUE_DARK = "#304e62";
 C_COLOR_BLUE = "#a8d4f2";
+
+class CanvasClickableLabel:
+
+	# Count the number of clickable labels initialized
+	count = 0;
+
+	def __init__(self, canvas, x, y, label_text, normal_foreground, hovered_foreground):
+		self.canvas = canvas;
+		# Generate a unique id for each clickable label (for tags)
+		self.id = str(CanvasClickableLabel.count);
+		CanvasClickableLabel.count = CanvasClickableLabel.count + 1;
+		# Set color scheme for different states
+		self.normal_foreground = normal_foreground;
+		self.hovered_foreground = hovered_foreground;
+		
+		# Create the clickable label text
+		canvas.create_text(x, y, font="Helvetica 14 underline", text=label_text, fill=self.normal_foreground, tags=("clickable_label" + self.id));
+		# Bind events
+		canvas.tag_bind("clickable_label" + self.id, "<Enter>", self.on_enter);
+		canvas.tag_bind("clickable_label" + self.id, "<Leave>", self.on_leave);
+		canvas.tag_bind("clickable_label" + self.id, "<Button-1>", self.on_click);
+
+	def on_enter(self, event):
+		self.canvas.itemconfig("clickable_label" + self.id, fill=self.hovered_foreground);
+
+	def on_leave(self, event):
+		self.canvas.itemconfig("clickable_label" + self.id, fill=self.normal_foreground);
+
+	def on_click(self, event):
+		try:
+			self.command();
+		except:
+			print("Error: CanvasClickableLabel " + self.id + " does not have a command");
+
+	def config(self, **args):
+		return self.canvas.itemconfig("clickable_label" + self.id, **args);
 
 class CanvasButton:
 
@@ -82,6 +120,9 @@ class BaseScene(tkinter.Canvas):
 	def create_button(self, x, y, button_text, normal_background=C_COLOR_BLUE, hovered_background=C_COLOR_BLUE_DARK, normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
 		return CanvasButton(self, x, y, button_text, normal_background, hovered_background, normal_foreground, hovered_foreground);
 
+	def create_clickable_label(self, x, y, button_text, normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
+		return CanvasClickableLabel(self, x, y, button_text, normal_foreground, hovered_foreground);
+
 
 # Define a subclass of BaseScene for the welcome scene
 class WelcomeScene(BaseScene):
@@ -149,11 +190,19 @@ class AboutScene(BaseScene):
 		
 		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 96, anchor="w", font="Helvetica 14", text="Developed by Charlie Chen", fill=C_COLOR_BLUE_DARK);
 		
+		link_charmysoft = self.create_clickable_label(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 64, "http://CharmySoft.com", "#0B0080", "#CC2200");
+		link_charmysoft.config(anchor="w");
+		link_charmysoft.command = self.on_charmysoft_clicked;
+
 		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2, anchor="w", font="Helvetica 14", text="Tic Tac Toe Online in Python is \nopen source under the MIT license", fill=C_COLOR_BLUE_DARK);
 		
+		link_project = self.create_clickable_label(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 + 40, "http://CharmySoft.com/app/ttt-python.htm", "#0B0080", "#CC2200");
+		link_project.config(anchor="w");
+		link_project.command = self.on_project_link_clicked;
+
 		self.create_text(C_WINDOW_WIDTH/2 + 64, C_WINDOW_HEIGHT/2 + 96, font="Helvetica 16", text="Copyright (c) 2016 CharmySoft", fill=C_COLOR_BLUE_DARK);
 		
-		# Create the Play button
+		# Create the OK button
 		ok_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 160, "OK", C_COLOR_BLUE_DARK, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_DARK);
 		ok_btn.command = self.on_ok_clicked;
 
@@ -163,6 +212,12 @@ class AboutScene(BaseScene):
 	def on_ok_clicked(self):
 		self.pack_forget();
 		self.welcome_scene.pack();
+
+	def on_charmysoft_clicked(self):
+		webbrowser.open("http://www.CharmySoft.com/about.htm");
+
+	def on_project_link_clicked(self):
+		webbrowser.open("http://www.CharmySoft.com/ttt-python.htm");
 
 # Create a Tkinter object
 root = tkinter.Tk();
