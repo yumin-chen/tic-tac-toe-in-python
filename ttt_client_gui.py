@@ -12,14 +12,31 @@ C_COLOR_BLUE_LIGHT = "#e4f1fe";
 C_COLOR_BLUE_DARK = "#304e62";
 C_COLOR_BLUE = "#a8d4f2";
 
-# Define a subclass of Canvas for the welcome scene
-class WelcomeScene(tkinter.Canvas):
+# Define a subclass of Canvas as an abstract base scene class
+class BaseScene(tkinter.Canvas):
 
 	def __init__(self, parent):
 		tkinter.Canvas.__init__(self, parent, bg=C_COLOR_BLUE_LIGHT, height=C_WINDOW_HEIGHT, width=C_WINDOW_WIDTH);
 		self.bind("<Configure>", self.on_resize);
 		self.width = C_WINDOW_WIDTH; 
 		self.height = C_WINDOW_HEIGHT; 
+
+	def on_resize(self, event):
+		# Determine the ratio of old width/height to new width/height
+		wscale = float(event.width)/self.width;
+		hscale = float(event.height)/self.height;
+		self.width = event.width;
+		self.height = event.height;
+		# Resize the canvas 
+		self.config(width=self.width, height=self.height);
+		# Rescale all the objects tagged with the "all" tag
+		self.scale("all", 0, 0, wscale, hscale);
+
+# Define a subclass of BaseScene for the welcome scene
+class WelcomeScene(BaseScene):
+
+	def __init__(self, parent):
+		BaseScene.__init__(self, parent);
 
 		# Create a blue arch at the top of the canvas
 		self.create_arc((-64, -368, C_WINDOW_WIDTH + 64, 192), start=0, extent=-180, fill=C_COLOR_BLUE, outline="");
@@ -44,17 +61,6 @@ class WelcomeScene(tkinter.Canvas):
 
 		# Tag all of the drawn widgets for later reference
 		self.addtag_all("all");
-
-	def on_resize(self, event):
-		# Determine the ratio of old width/height to new width/height
-		wscale = float(event.width)/self.width;
-		hscale = float(event.height)/self.height;
-		self.width = event.width;
-		self.height = event.height;
-		# Resize the canvas 
-		self.config(width=self.width, height=self.height);
-		# Rescale all the objects tagged with the "all" tag
-		self.scale("all", 0, 0, wscale, hscale);
 
 	def create_button(self, x, y, button_text):
 		# Define constant width and height
