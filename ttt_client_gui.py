@@ -21,60 +21,42 @@ class CanvasButton:
 	# Count the number of buttons objects initialized
 	count = 0;
 
-	def __init__(self, canvas, x, y, button_text):
+	def __init__(self, canvas, x, y, button_text, normal_background, hovered_background, normal_foreground, hovered_foreground):
 		self.canvas = canvas;
 		# Generate a unique id for each button (for tags)
 		self.id = str(CanvasButton.count);
 		CanvasButton.count = CanvasButton.count + 1;
+		# Set color scheme for different states
+		self.normal_background = normal_background;
+		self.hovered_background = hovered_background;
+		self.normal_foreground = normal_foreground;
+		self.hovered_foreground = hovered_foreground;
 
 		# Create the rectangle background
-		rect = canvas.create_rectangle(x - self.WIDTH/2 + self.HEIGHT/2, y - self.HEIGHT/2, x + self.WIDTH/2 - self.HEIGHT/2, y + self.HEIGHT/2, fill=C_COLOR_BLUE, outline="", tags=("btn_bg" + self.id, "rect" + self.id));
+		canvas.create_rectangle(x - self.WIDTH/2 + self.HEIGHT/2, y - self.HEIGHT/2, x + self.WIDTH/2 - self.HEIGHT/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=("btn" + self.id, "rect" + self.id));
 		# Create the two circles on both sides to create a rounded edge
-		oval_l = canvas.create_oval(x - self.WIDTH/2, y - self.HEIGHT/2, x - self.WIDTH/2 + self.HEIGHT, y + self.HEIGHT/2, fill=C_COLOR_BLUE, outline="", tags=("btn_bg" + self.id, "oval_l" + self.id));
-		oval_r = canvas.create_oval(x + self.WIDTH/2 - self.HEIGHT, y - self.HEIGHT/2, x + self.WIDTH/2, y + self.HEIGHT/2, fill=C_COLOR_BLUE, outline="", tags=("btn_bg" + self.id, "oval_r" + self.id));
+		canvas.create_oval(x - self.WIDTH/2, y - self.HEIGHT/2, x - self.WIDTH/2 + self.HEIGHT, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=("btn" + self.id, "oval_l" + self.id));
+		canvas.create_oval(x + self.WIDTH/2 - self.HEIGHT, y - self.HEIGHT/2, x + self.WIDTH/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=("btn" + self.id, "oval_r" + self.id));
 		# Create the button text
-		canvas.create_text(x, y, font="Helvetica 16 bold", text=button_text, fill=C_COLOR_BLUE_DARK);
+		canvas.create_text(x, y, font="Helvetica 16 bold", text=button_text, fill=self.normal_foreground, tags=("btn" + self.id, "text" + self.id));
 		# Bind events
-		canvas.tag_bind("rect" + self.id, "<Enter>", self.btn_on_enter_rect);
-		canvas.tag_bind("oval_l" + self.id, "<Enter>", self.btn_on_enter_oval_l);
-		canvas.tag_bind("oval_r" + self.id, "<Enter>", self.btn_on_enter_oval_r);
-		canvas.tag_bind("btn_bg" + self.id, "<Leave>", self.btn_on_leave);
-		canvas.tag_bind("rect" + self.id, "<Leave>", self.btn_on_leave_rect);
-		canvas.tag_bind("oval_l" + self.id, "<Leave>", self.btn_on_leave_oval_l);
-		canvas.tag_bind("oval_r" + self.id, "<Leave>", self.btn_on_leave_oval_r); 
-		# Create a dictionary used to mark when a component is hovered 
-		self.entered = {"rect" + self.id: False, "oval_l" + self.id: False, "oval_r" + self.id: False};
+		canvas.tag_bind("btn" + self.id, "<Enter>", self.on_enter);
+		canvas.tag_bind("btn" + self.id, "<Leave>", self.on_leave);
+		canvas.tag_bind("btn" + self.id, "<Button-1>", self.on_click);
 
-	def btn_on_enter(self, event):
-		self.canvas.itemconfig("btn_bg" + self.id, fill=C_COLOR_BLUE_DARK);
+	def on_enter(self, event):
+		self.canvas.itemconfig("btn" + self.id, fill=self.hovered_background);
+		self.canvas.itemconfig("text" + self.id, fill=self.hovered_foreground);
 
-	def btn_on_enter_rect(self, event):
-		self.entered["rect" + self.id] = True;
-		self.btn_on_enter(event);
+	def on_leave(self, event):
+		self.canvas.itemconfig("btn" + self.id, fill=self.normal_background);
+		self.canvas.itemconfig("text" + self.id, fill=self.normal_foreground);
 
-	def btn_on_enter_oval_l(self, event):
-		self.entered["oval_l" + self.id] = True;
-		self.btn_on_enter(event);
-
-	def btn_on_enter_oval_r(self, event):
-		self.entered["oval_r" + self.id] = True;
-		self.btn_on_enter(event);
-
-	def btn_on_leave(self, event):
-		if(self.entered["rect" + self.id] == False and self.entered["oval_l" + self.id] == False and self.entered["oval_r" + self.id] == False):
-			self.canvas.itemconfig("btn_bg" + self.id, fill=C_COLOR_BLUE);
-
-	def btn_on_leave_rect(self, event):
-		self.entered["rect" + self.id] = False;
-		self.btn_on_leave(event);
-
-	def btn_on_leave_oval_l(self, event):
-		self.entered["oval_l" + self.id] = False;
-		self.btn_on_leave(event);
-
-	def btn_on_leave_oval_r(self, event):
-		self.entered["oval_r" + self.id] = False;
-		self.btn_on_leave(event);
+	def on_click(self, event):
+		try:
+			self.command();
+		except:
+			print("Error: CanvasButton " + self.id + " does not have a command");
 
 # Define a subclass of Canvas as an abstract base scene class
 class BaseScene(tkinter.Canvas):
@@ -95,6 +77,11 @@ class BaseScene(tkinter.Canvas):
 		self.config(width=self.width, height=self.height);
 		# Rescale all the objects tagged with the "all" tag
 		self.scale("all", 0, 0, wscale, hscale);
+
+
+	def create_button(self, x, y, button_text, normal_background=C_COLOR_BLUE, hovered_background=C_COLOR_BLUE_DARK, normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
+		return CanvasButton(self, x, y, button_text, normal_background, hovered_background, normal_foreground, hovered_foreground);
+
 
 # Define a subclass of BaseScene for the welcome scene
 class WelcomeScene(BaseScene):
@@ -119,15 +106,22 @@ class WelcomeScene(BaseScene):
 			tkinter.messagebox.showerror("Error", "Can't create images.\nPlease make sure the res folder is in the same directory as this script.");
 
 		# Create the Play button
-		self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 136, "Play");
+		play_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 136, "Play");
+		play_btn.command = self.on_play_clicked;
 		# Create the About button
-		self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 192, "About");
+		about_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 192, "About");
+		about_btn.command = self.on_about_clicked;
 
 		# Tag all of the drawn widgets for later reference
 		self.addtag_all("all");
 
-	def create_button(self, x, y, button_text):
-		return CanvasButton(self, x, y, button_text);
+	def on_play_clicked(self):
+		return;
+
+	def on_about_clicked(self):
+		self.pack_forget();
+		self.about_scene.pack();
+
 
 # Define a subclass of BaseScene for the about scene
 class AboutScene(BaseScene):
@@ -136,10 +130,39 @@ class AboutScene(BaseScene):
 		BaseScene.__init__(self, parent);
 
 		# Create a blue arch at the bottom of the canvas
-		self.create_arc((-64, C_WINDOW_HEIGHT - 192, C_WINDOW_WIDTH + 64, C_WINDOW_HEIGHT + 368), start=0, extent=180, fill=C_COLOR_BLUE, outline="");
+		self.create_arc((-128, C_WINDOW_HEIGHT - 128, C_WINDOW_WIDTH + 128, C_WINDOW_HEIGHT + 368), start=0, extent=180, fill=C_COLOR_BLUE, outline="");
+
+		try:
+			# From the Charmy image file create a PhotoImage object 
+			self.charmy_image = tkinter.PhotoImage(file="res/charmy.png");
+			# Create the logo image on the left of the canvas
+			logo = self.create_image((C_WINDOW_WIDTH/2 - 192, C_WINDOW_HEIGHT/2 - 48), image=self.charmy_image);
+			# From the title image file create a PhotoImage object 
+			self.title_image = tkinter.PhotoImage(file="res/title.png");
+			# Resize the image to make it smaller
+			self.title_image = self.title_image.subsample(2, 2);
+			# Create the logo image at the center of the canvas
+			title = self.create_image((C_WINDOW_WIDTH/2 + 64, C_WINDOW_HEIGHT/2 - 160), image=self.title_image);
+		except:	
+			# An error has been caught when creating the logo image
+			tkinter.messagebox.showerror("Error", "Can't create images.\nPlease make sure the res folder is in the same directory as this script.");
+		
+		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 96, anchor="w", font="Helvetica 14", text="Developed by Charlie Chen", fill=C_COLOR_BLUE_DARK);
+		
+		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2, anchor="w", font="Helvetica 14", text="Tic Tac Toe Online in Python is \nopen source under the MIT license", fill=C_COLOR_BLUE_DARK);
+		
+		self.create_text(C_WINDOW_WIDTH/2 + 64, C_WINDOW_HEIGHT/2 + 96, font="Helvetica 16", text="Copyright (c) 2016 CharmySoft", fill=C_COLOR_BLUE_DARK);
+		
+		# Create the Play button
+		ok_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 160, "OK", C_COLOR_BLUE_DARK, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_DARK);
+		ok_btn.command = self.on_ok_clicked;
 
 		# Tag all of the drawn widgets for later reference
 		self.addtag_all("all");
+
+	def on_ok_clicked(self):
+		self.pack_forget();
+		self.welcome_scene.pack();
 
 # Create a Tkinter object
 root = tkinter.Tk();
@@ -164,10 +187,9 @@ welcome_scene.pack();
 
 # Initialize the about scene
 about_scene = AboutScene(root);
-# Pack the about scene
-about_scene.pack();
-# Give a reference to the welcome scene for switching between scenes
+# Give a reference for switching between scenes
 welcome_scene.about_scene = about_scene;
+about_scene.welcome_scene = welcome_scene;
     
 # Main loop
 root.mainloop();
