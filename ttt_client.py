@@ -29,7 +29,7 @@ while True:
 
 	except:
 		# Caught an error
-		print("There is an error when trying to connect to ", address, "::", port_number);
+		print("There is an error when trying to connect to " + str(address) + "::" + str(port_number));
 
 		# Ask the user what to do with the error
 		choice = input("[A]bort, [C]hange address and port, or [R]etry?");
@@ -73,7 +73,7 @@ while True:
 
 	# Get the board content from the server
 	board_content = client_socket.recv(9).decode();
-	# Get from the server whether it's my turn to move
+	# Get the command from the server 
 	command = client_socket.recv(1).decode();
 
 	# If it's this player's turn to move
@@ -124,12 +124,25 @@ while True:
 	# If this player wins
 	elif(command == "W"):
 		print("You WIN!");
+		# Break the loop and finish
 		break;
 
 	# If this player loses
 	elif(command == "L"):
 		print("You lose.");
+		# Break the loop and finish
 		break;
+
+	# If the other player lost connection
+	elif(command == "Q"):
+		print("The other player has lost connection with the server.\nGame over.");
+		# Break the loop and finish
+		break;
+
+	# If the server sends back anything unrecognizable
+	else:
+		# Simply print it
+		print("Error: unknown message was sent from the server");
 
 
 # Shut down the socket to prevent further sends/receives

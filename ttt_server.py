@@ -21,8 +21,8 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 # Keep repeating connecting to the server
 while True:
 	try:
-		# Bind to an address (localhost) with the designated port 
-		server_socket.bind(("localhost", int(port_number)));
+		# Bind to an address with the designated port, the empty string "" is a symbolic name meaning all available interfaces
+		server_socket.bind(("", int(port_number)));
 		print("Reserved port ", port_number);
 
 		# Start listening to the binded address
@@ -34,7 +34,7 @@ while True:
 
 	except:
 		# Caught an error
-		print("There is an error when trying to bind localhost::", port_number);
+		print("There is an error when trying to bind " + str(port_number));
 
 		# Ask the user what to do with the error
 		choice = input("[A]bort, [C]hange port, or [R]etry?");
@@ -46,8 +46,35 @@ while True:
 
 # Define the Player class
 class Player:
+
+	def send(self, msg):
+		try:
+			self.connection.send(msg.encode());
+		except:
+			# If any error occurred, the connection might be lost
+			self.connectionLost();
+
+	def recv(self, size):
+		try:
+			msg = self.connection.recv(size).decode();
+			if(msg is None):
+				# If the message received is None, the connection might be lost
+				self.connectionLost();
+				return "";
+			return msg;
+		except:
+			# If any error occurred, the connection might be lost
+			self.connectionLost();
+		return None;
+
+	def connectionLost(self):
+		# This player has lost connection with the server
+		print("Player " + str(self.id) + "connection lost.");
+		# Tell the other player that the game is finished
+		self.match.send("Q");
+
 	def sendMatchInfo(self):
-		self.connection.send(("You are now matched with player " + str(self.match.id) + "\nGame is getting started!\nYou are the \"" + self.role + "\"").encode());
+		self.send(("You are now matched with player " + str(self.match.id) + "\nGame is getting started!\nYou are the \"" + self.role + "\""));
 
 
 # Define the Game class
@@ -122,31 +149,31 @@ def checkWinner(game, player):
 # Make a move
 def gameMove(game, moving_player, waiting_player):
 	# Send both players the current board content
-	moving_player.connection.send(("".join(game.board_content)).encode());
-	waiting_player.connection.send(("".join(game.board_content)).encode());
+	moving_player.send(("".join(game.board_content)));
+	waiting_player.send(("".join(game.board_content)));
 	# Let the moving player move, Y stands for yes it's turn to move, and N stands for no and waiting
-	moving_player.connection.send("Y".encode());
-	waiting_player.connection.send("N".encode());
+	moving_player.send("Y");
+	waiting_player.send("N");
 	# Receive the move from the moving player
-	move = int(moving_player.connection.recv(1).decode());
+	move = int(moving_player.recv(1));
 	# Send the move to the waiting player
-	waiting_player.connection.send(str(move).encode());
+	waiting_player.send(str(move));
 	# Write the "X" into the board
 	game.board_content[move - 1] = moving_player.role;
 	# Check if this will result in a win
 	result = checkWinner(game, moving_player);
 	if(result != -1):
 		if(result == 0):
-			moving_player.connection.send(("".join(game.board_content)).encode());
-			waiting_player.connection.send(("".join(game.board_content)).encode());
-			moving_player.connection.send("D".encode());
-			waiting_player.connection.send("D".encode());
+			moving_player.send(("".join(game.board_content)));
+			waiting_player.send(("".join(game.board_content)));
+			moving_player.send("D");
+			waiting_player.send("D");
 			return True;
 		if(result == 1):
-			moving_player.connection.send(("".join(game.board_content)).encode());
-			waiting_player.connection.send(("".join(game.board_content)).encode());
-			moving_player.connection.send("W".encode());
-			waiting_player.connection.send("L".encode());
+			moving_player.send(("".join(game.board_content)));
+			waiting_player.send(("".join(game.board_content)));
+			moving_player.send("W");
+			waiting_player.send("L");
 			return True;
 		return False;
 
@@ -158,10 +185,12 @@ def gameThread(game):
 	# Print the match info onto screen 
 	print("Player " + str(game.player1.id) + " is matched with player " + str(game.player2.id) + "\n");
 
-	if(game.player1.connection.recv(1024).decode() == "Ready" and game.player2.connection.recv(1024).decode() == "Ready"):
+	if(game.player1.recv(1024) == "Ready" and game.player2.recv(1024) == "Ready"):
 		print("New game started!");
 	else:
 		print("Error occured.");
+		# Finish
+		return;
 
 	while True:
 		# Player 1 move
@@ -175,7 +204,7 @@ def gameThread(game):
 # The client thread for each player 
 def clientThread(player):
 	# Send the welcome message back to the client
-	player.connection.send(("Welcome to Tic Tac Toe online, player " + str(player.id) + "\nPlease wait for another player to join the game...").encode());
+	player.send(("Welcome to Tic Tac Toe online, player " + str(player.id) + "\nPlease wait for another player to join the game..."));
 
 	while True:
 		# If the player is still waiting for another player to join
