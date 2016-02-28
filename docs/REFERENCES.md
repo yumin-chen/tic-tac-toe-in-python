@@ -3,6 +3,22 @@ References
 Here is a list of external sources that I learned from during this project.
 
 
+* effbot.org: tkinterbook :: Events and Bindings  
+	<http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm>  
+
+
+* Stack overflow: How to get tkinter canvas to dynamically resize to window width?
+	<http://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width>  
+
+
+* Python Course: Tkinter Tutorial - Canvas Widgets  
+	<http://www.python-course.eu/tkinter_canvas.php>  
+
+
+* effbot.org: tkinterbook :: The Tkinter Canvas Widget  
+	<http://effbot.org/tkinterbook/canvas.htm>  
+
+
 * Tutorials Point: Python Tkinter Canvas  
 	<http://www.tutorialspoint.com/python/tk_canvas.htm>  
 
