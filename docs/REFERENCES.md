@@ -3,6 +3,14 @@ References
 Here is a list of external sources that I learned from when I was doing this project.
 
 
+* The Python Standard Library: 6. Built-in Exceptions  
+	<http://docs.python.org/2/library/exceptions.html>  
+
+
+* Stack overflow: Static methods in Python?  
+	<http://stackoverflow.com/questions/735975/static-methods-in-python>  
+
+
 * Stack overflow: Call to operating system to open url?  
 	<http://stackoverflow.com/questions/4216985/call-to-operating-system-to-open-url>  
 
