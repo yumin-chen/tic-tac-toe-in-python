@@ -23,7 +23,8 @@ class TTTClient:
 				return True;
 			except:
 				# Caught an error
-				print("There is an error when trying to connect to " + str(address) + "::" + str(port_number));
+				print("There is an error when trying to connect to " + 
+					str(address) + "::" + str(port_number));
 				# Ask the user what to do with the error
 				choice = input("[A]bort, [C]hange address and port, or [R]etry?");
 				if(choice.lower() == "a"):
@@ -33,28 +34,17 @@ class TTTClient:
 					port_number = input("Please enter the port:");
 		return False;
 
-	def connection_lost(self):
-		"""Call this function when the connection is lost."""
-		print("Error: connection lost.");
-		try:
-			# Try and send a message back to the server to notify connection lost
-			self.client_socket.send("q".encode());
-		except:
-			pass;
-		# Raise an error to finish 
-		raise Exception;
-
 	def s_send(self, command_type, msg):
 		"""Sends a message to the server with an agreed command type token 
 		to ensure the message is delivered safely."""
-		# A 1 byte command_type character is put at the front of the message as a communication convention
+		# A 1 byte command_type character is put at the front of the message
+		# as a communication convention
 		try:
 			self.client_socket.send((command_type + msg).encode());
 		except:
 			# If any error occurred, the connection might be lost
-			self.connection_lost();
+			self.__connection_lost();
 
-	# Safe communication convention to receive message
 	def s_recv(self, size, expected_type):
 		"""Receives a packet with specified size from the server and check 
 		its integrity by comparing its command type token with the expected
@@ -65,18 +55,18 @@ class TTTClient:
 			if(msg[0] == "Q"):
 				why_quit = "";
 				try:
-					# Try receiving the whole reason why the client has quit
+					# Try receiving the whole reason why quit
 					why_quit = self.client_socket.recv(1024).decode();
 				except:
 					pass;
 				# Print the resaon
 				print(msg[1:] + why_quit);
-				# Connection lost
-				self.connection_lost();
+				# Throw an error
+				raise Exception;
 			# If the command type token is not the expected type
 			elif(msg[0] != expected_type):
 				# Connection lost
-				self.connection_lost();
+				self.__connection_lost();
 			# If received an integer from the server
 			elif(msg[0] == "I"):
 				# Return the integer
@@ -85,12 +75,24 @@ class TTTClient:
 			else:
 				# Return the message
 				return msg[1:];
-			# Simply return the raw message if anything unexpected happended because it shouldn't matter any more
+			# Simply return the raw message if anything unexpected happended 
+			# because it shouldn't matter any more
 			return msg;
 		except:
 			# If any error occurred, the connection might be lost
-			self.connection_lost();
+			self.__connection_lost();
 		return None;
+
+	def __connection_lost(self):
+		"""(Private) This function will be called when the connection is lost."""
+		print("Error: connection lost.");
+		try:
+			# Try and send a message back to the server to notify connection lost
+			self.client_socket.send("q".encode());
+		except:
+			pass;
+		# Raise an error to finish 
+		raise Exception;
 
 	def close(self):	
 		"""Shut down the socket and close it"""
@@ -107,9 +109,9 @@ class TTTClientGame(TTTClient):
 		TTTClient.__init__(self);
 
 	def start_game(self):
-		"""Starts the game and gets basic game information from the 
-		server."""
-		# Wrap the whole game logic with a gigantic try and catch to handle the errors gracefully
+		"""Starts the game and gets basic game information from the server."""
+		# Wrap the whole game logic with a gigantic try and catch 
+		# to handle the errors gracefully
 		try:
 			# Receive the player's ID from the server
 			self.player_id = int(self.s_recv(128, "A"));
@@ -133,12 +135,12 @@ class TTTClientGame(TTTClient):
 				+ "\nYou are the \"" + self.role + "\""));
 
 			# Go to the main loop
-			self.main_loop();
+			self.__main_loop();
 		except:
 			print(("Game finished unexpectedly!"));
 
-	def main_loop(self):
-		"""The main game loop."""
+	def __main_loop(self):
+		"""(Private) The main game loop."""
 		while True:
 			# Get the board content from the server
 			board_content = self.s_recv(10, "B");
@@ -159,18 +161,26 @@ class TTTClientGame(TTTClient):
 				# If it's this player's turn to move
 				while True:
 					# Prompt the user to enter a position
-					position = int(input('Please enter the position (1~9):'));
+					try:
+						position = int(input('Please enter the position (1~9):'));
+					except:
+						print("Invalid input.");
+						continue;
+
 					# Ensure user-input data is valid
 					if(position >= 1 and position <= 9):
 						# If the position is between 1 and 9
 						if(board_content[position - 1] != " "):
-							# If the position is already been taken, print out a warning
-							print("That position has already been taken. Please choose another one.");
+							# If the position is already been taken,
+							# Print out a warning
+							print("That position has already been taken." + 
+								"Please choose another one.");
 						else:
 							# If the user input is valid, break the loop
 							break;
 					else:
-						print("Please enter a value between 1 and 9 that corresponds to the position on the grid board.");
+						print("Please enter a value between 1 and 9 that" + 
+							"corresponds to the position on the grid board.");
 					# Loop until the user enters a valid value
 
 				# Send the position back to the server
@@ -203,8 +213,8 @@ class TTTClientGame(TTTClient):
 				break;
 
 	def show_board_pos(s):
-		"""Converts the empty positions " " (a space) in the board string 
-		to its corresponding position index number."""
+		"""(Static) Converts the empty positions " " (a space) in the board 
+		string to its corresponding position index number."""
 
 		new_s = list("123456789");
 		for i in range(0, 8):
@@ -213,7 +223,7 @@ class TTTClientGame(TTTClient):
 		return "".join(new_s);
 
 	def format_board(s):
-		"""Formats the grid board."""
+		"""(Static) Formats the grid board."""
 
 		# If the length of the string is not 9
 		if(len(s) != 9):
@@ -226,7 +236,9 @@ class TTTClientGame(TTTClient):
 		#print("|1|2|3|");
 		#print("|4|5|6|");
 		#print("|7|8|9|");
-		return "|" + s[0] + "|" + s[1]  + "|" + s[2] + "|\n" + "|" + s[3] + "|" + s[4]  + "|" + s[5] + "|\n" + "|" + s[6] + "|" + s[7]  + "|" + s[8] + "|\n";
+		return("|" + s[0] + "|" + s[1]  + "|" + s[2] + "|\n" 
+			+ "|" + s[3] + "|" + s[4]  + "|" + s[5] + "|\n" 
+			+ "|" + s[6] + "|" + s[7]  + "|" + s[8] + "|\n");
 
 # If there are more than 3 arguments 
 if(len(argv) >= 3):
