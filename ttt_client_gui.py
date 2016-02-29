@@ -27,7 +27,22 @@ class CanvasWidget:
 
 		# Generate a unique tag for each widget
 		self.tag_name = self.__class__.__name__ + self.id;
-		
+
+	def set_clickable(self, clickable):
+		if(clickable):
+			self.canvas.tag_bind(self.tag_name, "<Button-1>", self.on_click);
+		else:
+			self.canvas.tag_unbind(self.tag_name);
+
+	def on_click(self, event):
+		try:
+			self.command();
+		except:
+			print("Error: " + self.__class__.__name__ + " " + self.id + " does not have a command");
+
+	def config(self, **args):
+		return self.canvas.itemconfig(self.tag_name, **args);
+
 class CanvasClickableLabel(CanvasWidget):
 
 
@@ -45,7 +60,7 @@ class CanvasClickableLabel(CanvasWidget):
 		# Bind events
 		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
 		canvas.tag_bind(self.tag_name, "<Leave>", self.on_leave);
-		canvas.tag_bind(self.tag_name, "<Button-1>", self.on_click);
+		self.set_clickable(True);
 
 	def on_enter(self, event):
 		self.canvas.itemconfig(self.tag_name, fill=self.hovered_foreground);
@@ -53,14 +68,6 @@ class CanvasClickableLabel(CanvasWidget):
 	def on_leave(self, event):
 		self.canvas.itemconfig(self.tag_name, fill=self.normal_foreground);
 
-	def on_click(self, event):
-		try:
-			self.command();
-		except:
-			print("Error: CanvasClickableLabel " + self.id + " does not have a command");
-
-	def config(self, **args):
-		return self.canvas.itemconfig(self.tag_name, **args);
 
 class CanvasButton(CanvasWidget):
 
@@ -88,7 +95,7 @@ class CanvasButton(CanvasWidget):
 		# Bind events
 		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
 		canvas.tag_bind(self.tag_name, "<Leave>", self.on_leave);
-		canvas.tag_bind(self.tag_name, "<Button-1>", self.on_click);
+		self.set_clickable(True);
 
 	def on_enter(self, event):
 		self.canvas.itemconfig(self.tag_name, fill=self.hovered_background);
@@ -97,12 +104,6 @@ class CanvasButton(CanvasWidget):
 	def on_leave(self, event):
 		self.canvas.itemconfig(self.tag_name, fill=self.normal_background);
 		self.canvas.itemconfig("text" + self.id, fill=self.normal_foreground);
-
-	def on_click(self, event):
-		try:
-			self.command();
-		except:
-			print("Error: CanvasButton " + self.id + " does not have a command");
 
 # Define a subclass of Canvas as an abstract base scene class
 class BaseScene(tkinter.Canvas):
