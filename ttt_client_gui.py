@@ -45,7 +45,6 @@ class CanvasWidget:
 
 class CanvasClickableLabel(CanvasWidget):
 
-
 	def __init__(self, canvas, x, y, label_text, normal_foreground, hovered_foreground):
 		# Initialize super class
 		CanvasWidget.__init__(self, canvas);
@@ -55,7 +54,8 @@ class CanvasClickableLabel(CanvasWidget):
 		self.hovered_foreground = hovered_foreground;
 		
 		# Create the clickable label text
-		canvas.create_text(x, y, font="Helvetica 14 underline", text=label_text, fill=self.normal_foreground, tags=(self.tag_name));
+		canvas.create_text(x, y, font="Helvetica 14 underline", text=label_text, 
+			fill=self.normal_foreground, tags=(self.tag_name));
 		
 		# Bind events
 		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
@@ -70,12 +70,13 @@ class CanvasClickableLabel(CanvasWidget):
 
 
 class CanvasButton(CanvasWidget):
-
 	# Define constant width and height
 	WIDTH = 196;
 	HEIGHT = 32;
 
-	def __init__(self, canvas, x, y, button_text, normal_background, hovered_background, normal_foreground, hovered_foreground):
+	def __init__(self, canvas, x, y, button_text, normal_background, hovered_background, 
+		normal_foreground, hovered_foreground):
+
 		# Initialize super class
 		CanvasWidget.__init__(self, canvas);
 
@@ -86,12 +87,22 @@ class CanvasButton(CanvasWidget):
 		self.hovered_foreground = hovered_foreground;
 
 		# Create the rectangle background
-		canvas.create_rectangle(x - self.WIDTH/2 + self.HEIGHT/2, y - self.HEIGHT/2, x + self.WIDTH/2 - self.HEIGHT/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=(self.tag_name, "rect" + self.id));
+		canvas.create_rectangle(x - self.WIDTH/2 + self.HEIGHT/2, y - self.HEIGHT/2, 
+			x + self.WIDTH/2 - self.HEIGHT/2, y + self.HEIGHT/2, 
+			fill=self.normal_background, outline="", tags=(self.tag_name, "rect" + self.id));
 		# Create the two circles on both sides to create a rounded edge
-		canvas.create_oval(x - self.WIDTH/2, y - self.HEIGHT/2, x - self.WIDTH/2 + self.HEIGHT, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=(self.tag_name, "oval_l" + self.id));
-		canvas.create_oval(x + self.WIDTH/2 - self.HEIGHT, y - self.HEIGHT/2, x + self.WIDTH/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=(self.tag_name, "oval_r" + self.id));
+		canvas.create_oval(x - self.WIDTH/2, y - self.HEIGHT/2, 
+			x - self.WIDTH/2 + self.HEIGHT, y + self.HEIGHT/2, 
+			fill=self.normal_background, outline="", tags=(self.tag_name, "oval_l" + self.id));
+
+		canvas.create_oval(x + self.WIDTH/2 - self.HEIGHT, y - self.HEIGHT/2, 
+			x + self.WIDTH/2, y + self.HEIGHT/2, 
+			fill=self.normal_background, outline="", tags=(self.tag_name, "oval_r" + self.id));
+
 		# Create the button text
-		canvas.create_text(x, y, font="Helvetica 16 bold", text=button_text, fill=self.normal_foreground, tags=(self.tag_name, "text" + self.id));
+		canvas.create_text(x, y, font="Helvetica 16 bold", text=button_text, 
+			fill=self.normal_foreground, tags=(self.tag_name, "text" + self.id));
+
 		# Bind events
 		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
 		canvas.tag_bind(self.tag_name, "<Leave>", self.on_leave);
@@ -109,8 +120,14 @@ class CanvasButton(CanvasWidget):
 class BaseScene(tkinter.Canvas):
 
 	def __init__(self, parent):
-		tkinter.Canvas.__init__(self, parent, bg=C_COLOR_BLUE_LIGHT, height=C_WINDOW_HEIGHT, width=C_WINDOW_WIDTH);
+		# Initialize the superclass Canvas
+		tkinter.Canvas.__init__(self, parent, bg=C_COLOR_BLUE_LIGHT, 
+			width=C_WINDOW_WIDTH, height=C_WINDOW_HEIGHT);
+
+		# Bind the window-resizing event
 		self.bind("<Configure>", self.on_resize);
+
+		# Set self.width and self.height for later use
 		self.width = C_WINDOW_WIDTH; 
 		self.height = C_WINDOW_HEIGHT; 
 
@@ -120,18 +137,25 @@ class BaseScene(tkinter.Canvas):
 		hscale = float(event.height)/self.height;
 		self.width = event.width;
 		self.height = event.height;
+
 		# Resize the canvas 
 		self.config(width=self.width, height=self.height);
+
 		# Rescale all the objects tagged with the "all" tag
 		self.scale("all", 0, 0, wscale, hscale);
 
+	def create_button(self, x, y, button_text, 
+		normal_background=C_COLOR_BLUE, hovered_background=C_COLOR_BLUE_DARK, 
+		normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
 
-	def create_button(self, x, y, button_text, normal_background=C_COLOR_BLUE, hovered_background=C_COLOR_BLUE_DARK, normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
-		return CanvasButton(self, x, y, button_text, normal_background, hovered_background, normal_foreground, hovered_foreground);
+		return CanvasButton(self, x, y, button_text, 
+			normal_background, hovered_background, normal_foreground, hovered_foreground);
 
-	def create_clickable_label(self, x, y, button_text, normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
-		return CanvasClickableLabel(self, x, y, button_text, normal_foreground, hovered_foreground);
+	def create_clickable_label(self, x, y, button_text, 
+		normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
 
+		return CanvasClickableLabel(self, x, y, button_text, 
+			normal_foreground, hovered_foreground);
 
 # Define a subclass of BaseScene for the welcome scene
 class WelcomeScene(BaseScene):
@@ -153,7 +177,8 @@ class WelcomeScene(BaseScene):
 			title = self.create_image((C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 48), image=self.title_image);
 		except:	
 			# An error has been caught when creating the logo image
-			tkinter.messagebox.showerror("Error", "Can't create images.\nPlease make sure the res folder is in the same directory as this script.");
+			tkinter.messagebox.showerror("Error", "Can't create images.\n" +
+				"Please make sure the res folder is in the same directory as this script.");
 
 		# Create the Play button
 		play_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 136, "Play");
@@ -166,12 +191,12 @@ class WelcomeScene(BaseScene):
 		self.addtag_all("all");
 
 	def on_play_clicked(self):
-		return;
+		self.pack_forget();
+		self.main_game_scene.pack();
 
 	def on_about_clicked(self):
 		self.pack_forget();
 		self.about_scene.pack();
-
 
 # Define a subclass of BaseScene for the about scene
 class AboutScene(BaseScene):
@@ -180,7 +205,8 @@ class AboutScene(BaseScene):
 		BaseScene.__init__(self, parent);
 
 		# Create a blue arch at the bottom of the canvas
-		self.create_arc((-128, C_WINDOW_HEIGHT - 128, C_WINDOW_WIDTH + 128, C_WINDOW_HEIGHT + 368), start=0, extent=180, fill=C_COLOR_BLUE, outline="");
+		self.create_arc((-128, C_WINDOW_HEIGHT - 128, C_WINDOW_WIDTH + 128, C_WINDOW_HEIGHT + 368), 
+			start=0, extent=180, fill=C_COLOR_BLUE, outline="");
 
 		try:
 			# From the Charmy image file create a PhotoImage object 
@@ -195,24 +221,31 @@ class AboutScene(BaseScene):
 			title = self.create_image((C_WINDOW_WIDTH/2 + 64, C_WINDOW_HEIGHT/2 - 160), image=self.title_image);
 		except:	
 			# An error has been caught when creating the logo image
-			tkinter.messagebox.showerror("Error", "Can't create images.\nPlease make sure the res folder is in the same directory as this script.");
+			tkinter.messagebox.showerror("Error", "Can't create images.\n" +
+				"Please make sure the res folder is in the same directory as this script.");
 		
-		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 96, anchor="w", font="Helvetica 14", text="Developed by Charlie Chen", fill=C_COLOR_BLUE_DARK);
+		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 96, anchor="w", 
+			font="Helvetica 14", text="Developed by Charlie Chen", fill=C_COLOR_BLUE_DARK);
 		
-		link_charmysoft = self.create_clickable_label(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 64, "http://CharmySoft.com", "#0B0080", "#CC2200");
+		link_charmysoft = self.create_clickable_label(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 - 64, 
+			"http://CharmySoft.com", "#0B0080", "#CC2200");
 		link_charmysoft.config(anchor="w");
 		link_charmysoft.command = self.on_charmysoft_clicked;
 
-		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2, anchor="w", font="Helvetica 14", text="Tic Tac Toe Online in Python is \nopen source under the MIT license", fill=C_COLOR_BLUE_DARK);
+		self.create_text(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2, anchor="w", font="Helvetica 14", 
+			text="Tic Tac Toe Online in Python is \nopen source under the MIT license", fill=C_COLOR_BLUE_DARK);
 		
-		link_project = self.create_clickable_label(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 + 40, "http://CharmySoft.com/app/ttt-python.htm", "#0B0080", "#CC2200");
+		link_project = self.create_clickable_label(C_WINDOW_WIDTH/2 - 80, C_WINDOW_HEIGHT/2 + 40, 
+			"http://CharmySoft.com/app/ttt-python.htm", "#0B0080", "#CC2200");
 		link_project.config(anchor="w");
 		link_project.command = self.on_project_link_clicked;
 
-		self.create_text(C_WINDOW_WIDTH/2 + 64, C_WINDOW_HEIGHT/2 + 96, font="Helvetica 16", text="Copyright (c) 2016 CharmySoft", fill=C_COLOR_BLUE_DARK);
+		self.create_text(C_WINDOW_WIDTH/2 + 64, C_WINDOW_HEIGHT/2 + 96, font="Helvetica 16", 
+			text="Copyright (c) 2016 CharmySoft", fill=C_COLOR_BLUE_DARK);
 		
 		# Create the OK button
-		ok_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 160, "OK", C_COLOR_BLUE_DARK, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_DARK);
+		ok_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT/2 + 160, "OK", 
+			C_COLOR_BLUE_DARK, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_DARK);
 		ok_btn.command = self.on_ok_clicked;
 
 		# Tag all of the drawn widgets for later reference
@@ -227,6 +260,48 @@ class AboutScene(BaseScene):
 
 	def on_project_link_clicked(self):
 		webbrowser.open("http://www.CharmySoft.com/ttt-python.htm");
+
+# Define a subclass of BaseScene for the main game scene
+class MainGameScene(BaseScene):
+
+	def __init__(self, parent):
+		BaseScene.__init__(self, parent);
+
+		# Create a blue arch at the bottom of the canvas
+		self.create_arc((-128, C_WINDOW_HEIGHT - 128, C_WINDOW_WIDTH + 128, C_WINDOW_HEIGHT + 368), 
+			start=0, extent=180, fill=C_COLOR_BLUE, outline="");
+
+		# Create the return button
+		return_btn = self.create_button(C_WINDOW_WIDTH - 128, 32, "Go back");
+		return_btn.command = self.on_return_clicked;
+
+		# Draw the board
+		board_line_width = 4; # Line width 
+		board_width = 256; # Board takes 256x256 pixels
+		board_grid_size = 3; # Draw a 3x3 board
+		for i in range(1, board_grid_size):
+			# Draw the board at the center of the screeen
+
+			# Draw horizontal lines
+			self.create_line((C_WINDOW_WIDTH - board_width)/2, 
+				(C_WINDOW_HEIGHT - board_width)/2 + board_width/board_grid_size * i, 
+				(C_WINDOW_WIDTH + board_width)/2, 
+				(C_WINDOW_HEIGHT - board_width)/2 + board_width/board_grid_size * i, 
+				fill=C_COLOR_BLUE_DARK, width=board_line_width);
+
+			# Draw vertical lines
+			self.create_line((C_WINDOW_WIDTH - board_width)/2 + board_width/board_grid_size * i, 
+				(C_WINDOW_HEIGHT - board_width)/2, 
+				(C_WINDOW_WIDTH - board_width)/2 + board_width/board_grid_size * i, 
+				(C_WINDOW_HEIGHT + board_width)/2, 
+				fill=C_COLOR_BLUE_DARK, width=board_line_width);
+
+		# Tag all of the drawn widgets for later reference
+		self.addtag_all("all");
+
+	def on_return_clicked(self):
+		self.pack_forget();
+		self.welcome_scene.pack();
 
 # Create a Tkinter object
 root = tkinter.Tk();
@@ -246,14 +321,19 @@ except:
 
 # Initialize the welcome scene
 welcome_scene = WelcomeScene(root);
-# Pack the welcome scene
-welcome_scene.pack();
-
 # Initialize the about scene
 about_scene = AboutScene(root);
+# Initialize the main game scene
+main_game_scene = MainGameScene(root);
+
 # Give a reference for switching between scenes
 welcome_scene.about_scene = about_scene;
+welcome_scene.main_game_scene = main_game_scene; 
 about_scene.welcome_scene = welcome_scene;
+main_game_scene.welcome_scene = welcome_scene;
+
+# Start showing the welcome scene
+welcome_scene.pack();
     
 # Main loop
 root.mainloop();
