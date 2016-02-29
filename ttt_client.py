@@ -40,12 +40,71 @@ while True:
 			address = input("Please enter the address:");
 			port_number = input("Please enter the port:");
 
-# Print the welcome message from the server
-print(client_socket.recv(1024).decode());
-# Print the match info from the server
-print(client_socket.recv(1024).decode());
-# Confirm to the server that this player is ready to start
-client_socket.send("Ready".encode());
+# Connection lost
+def connection_lost():
+	print("Error: connection lost.");
+	try:
+		# Try and send a message back to the server to notify connection lost
+		client_socket.send("q".encode());
+	except:
+		raise;
+
+# Safe communication convention to send message
+def s_send(command_type, msg):
+	# A 1 byte command_type character is put at the front of the message as a communication convention
+	try:
+		client_socket.send((command_type + msg).encode());
+	except:
+		# If any error occurred, the connection might be lost
+		connection_lost();
+
+# Safe communication convention to receive message
+def s_recv(size, expected_type):
+	try:
+		msg = client_socket.recv(size).decode();
+		# If received a quit signal from the server
+		if(msg[0] == "Q"):
+			# Print the resaon
+			print(msg[1:]);
+			# Connection lost
+			connection_lost();
+		# If the message is not the expected type
+		elif(msg[0] != expected_type):
+			# Connection lost
+			connection_lost();
+		# If received an integer from the server
+		elif(msg[0] == "I"):
+			# Return the integer
+			return int(msg[1:]);
+		# In other case
+		else:
+			# Return the message
+			return msg[1:];
+		# Simply return the raw message if anything unexpected happended because it shouldn't matter any more
+		return msg;
+	except:
+		# If any error occurred, the connection might be lost
+		connection_lost();
+	return None;
+
+# Receive the player's ID from the server
+player_id = int(s_recv(128, "A"));
+# Confirm the ID has been received
+s_send("c","1");
+
+print("Welcome to Tic Tac Toe online, player " + str(player_id) + "\nPlease wait for another player to join the game...");
+
+# Receive the assigned role from the server
+role = str(s_recv(2, "R"));
+# Confirm the assigned role has been received
+s_send("c","2");
+
+# Receive the mactched player's ID from the server
+match_id = int(s_recv(128, "I"));
+# Confirm the mactched player's ID has been received
+s_send("c","3");
+
+print(("You are now matched with player " + str(match_id) + "\nGame is getting started!\nYou are the \"" + role + "\""));
 
 # This functon converts empty board position " " to its corresponding position index
 def convertEmptyBoardPosition(s):
@@ -72,9 +131,9 @@ def formatBoard(s):
 while True:
 
 	# Get the board content from the server
-	board_content = client_socket.recv(9).decode();
+	board_content = s_recv(10, "B");
 	# Get the command from the server 
-	command = client_socket.recv(1).decode();
+	command = s_recv(2, "C");
 
 	# If it's this player's turn to move
 	if(command == "Y"):
@@ -104,7 +163,7 @@ while True:
 			# Else, loop until the user enters a valid value
 
 		# Send the position back to the server
-		client_socket.send(str(position).encode());
+		s_send("i", str(position));
 
 	# If the player needs to just wait
 	elif(command == "N"):
@@ -113,8 +172,8 @@ while True:
 		print("Waiting for the other player to make a move...");
 
 		# Get the move that the other player made from the server 
-		move = client_socket.recv(1).decode();
-		print("Your opponent took up number " + move);
+		move = s_recv(2, "I");
+		print("Your opponent took up number " + str(move));
 
 	# If the result is a draw
 	elif(command == "D"):
@@ -133,16 +192,12 @@ while True:
 		# Break the loop and finish
 		break;
 
-	# If the other player lost connection
-	elif(command == "Q"):
-		print("The other player has lost connection with the server.\nGame over.");
-		# Break the loop and finish
-		break;
-
 	# If the server sends back anything unrecognizable
 	else:
 		# Simply print it
 		print("Error: unknown message was sent from the server");
+		# And finish
+		break;
 
 
 # Shut down the socket to prevent further sends/receives
