@@ -14,32 +14,44 @@ C_COLOR_BLUE_LIGHT = "#e4f1fe";
 C_COLOR_BLUE_DARK = "#304e62";
 C_COLOR_BLUE = "#a8d4f2";
 
-class CanvasClickableLabel:
-
-	# Count the number of clickable labels initialized
+class CanvasWidget:
+	# Count the number of widgets initialized
 	count = 0;
 
-	def __init__(self, canvas, x, y, label_text, normal_foreground, hovered_foreground):
+	def __init__(self, canvas):
 		self.canvas = canvas;
-		# Generate a unique id for each clickable label (for tags)
-		self.id = str(CanvasClickableLabel.count);
-		CanvasClickableLabel.count = CanvasClickableLabel.count + 1;
+
+		# Generate a unique id for each widget (for tags)
+		self.id = str(CanvasWidget.count);
+		CanvasWidget.count = CanvasWidget.count + 1;
+
+		# Generate a unique tag for each widget
+		self.tag_name = self.__class__.__name__ + self.id;
+		
+class CanvasClickableLabel(CanvasWidget):
+
+
+	def __init__(self, canvas, x, y, label_text, normal_foreground, hovered_foreground):
+		# Initialize super class
+		CanvasWidget.__init__(self, canvas);
+
 		# Set color scheme for different states
 		self.normal_foreground = normal_foreground;
 		self.hovered_foreground = hovered_foreground;
 		
 		# Create the clickable label text
-		canvas.create_text(x, y, font="Helvetica 14 underline", text=label_text, fill=self.normal_foreground, tags=("clickable_label" + self.id));
+		canvas.create_text(x, y, font="Helvetica 14 underline", text=label_text, fill=self.normal_foreground, tags=(self.tag_name));
+		
 		# Bind events
-		canvas.tag_bind("clickable_label" + self.id, "<Enter>", self.on_enter);
-		canvas.tag_bind("clickable_label" + self.id, "<Leave>", self.on_leave);
-		canvas.tag_bind("clickable_label" + self.id, "<Button-1>", self.on_click);
+		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
+		canvas.tag_bind(self.tag_name, "<Leave>", self.on_leave);
+		canvas.tag_bind(self.tag_name, "<Button-1>", self.on_click);
 
 	def on_enter(self, event):
-		self.canvas.itemconfig("clickable_label" + self.id, fill=self.hovered_foreground);
+		self.canvas.itemconfig(self.tag_name, fill=self.hovered_foreground);
 
 	def on_leave(self, event):
-		self.canvas.itemconfig("clickable_label" + self.id, fill=self.normal_foreground);
+		self.canvas.itemconfig(self.tag_name, fill=self.normal_foreground);
 
 	def on_click(self, event):
 		try:
@@ -48,22 +60,18 @@ class CanvasClickableLabel:
 			print("Error: CanvasClickableLabel " + self.id + " does not have a command");
 
 	def config(self, **args):
-		return self.canvas.itemconfig("clickable_label" + self.id, **args);
+		return self.canvas.itemconfig(self.tag_name, **args);
 
-class CanvasButton:
+class CanvasButton(CanvasWidget):
 
 	# Define constant width and height
 	WIDTH = 196;
 	HEIGHT = 32;
 
-	# Count the number of buttons objects initialized
-	count = 0;
-
 	def __init__(self, canvas, x, y, button_text, normal_background, hovered_background, normal_foreground, hovered_foreground):
-		self.canvas = canvas;
-		# Generate a unique id for each button (for tags)
-		self.id = str(CanvasButton.count);
-		CanvasButton.count = CanvasButton.count + 1;
+		# Initialize super class
+		CanvasWidget.__init__(self, canvas);
+
 		# Set color scheme for different states
 		self.normal_background = normal_background;
 		self.hovered_background = hovered_background;
@@ -71,23 +79,23 @@ class CanvasButton:
 		self.hovered_foreground = hovered_foreground;
 
 		# Create the rectangle background
-		canvas.create_rectangle(x - self.WIDTH/2 + self.HEIGHT/2, y - self.HEIGHT/2, x + self.WIDTH/2 - self.HEIGHT/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=("btn" + self.id, "rect" + self.id));
+		canvas.create_rectangle(x - self.WIDTH/2 + self.HEIGHT/2, y - self.HEIGHT/2, x + self.WIDTH/2 - self.HEIGHT/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=(self.tag_name, "rect" + self.id));
 		# Create the two circles on both sides to create a rounded edge
-		canvas.create_oval(x - self.WIDTH/2, y - self.HEIGHT/2, x - self.WIDTH/2 + self.HEIGHT, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=("btn" + self.id, "oval_l" + self.id));
-		canvas.create_oval(x + self.WIDTH/2 - self.HEIGHT, y - self.HEIGHT/2, x + self.WIDTH/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=("btn" + self.id, "oval_r" + self.id));
+		canvas.create_oval(x - self.WIDTH/2, y - self.HEIGHT/2, x - self.WIDTH/2 + self.HEIGHT, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=(self.tag_name, "oval_l" + self.id));
+		canvas.create_oval(x + self.WIDTH/2 - self.HEIGHT, y - self.HEIGHT/2, x + self.WIDTH/2, y + self.HEIGHT/2, fill=self.normal_background, outline="", tags=(self.tag_name, "oval_r" + self.id));
 		# Create the button text
-		canvas.create_text(x, y, font="Helvetica 16 bold", text=button_text, fill=self.normal_foreground, tags=("btn" + self.id, "text" + self.id));
+		canvas.create_text(x, y, font="Helvetica 16 bold", text=button_text, fill=self.normal_foreground, tags=(self.tag_name, "text" + self.id));
 		# Bind events
-		canvas.tag_bind("btn" + self.id, "<Enter>", self.on_enter);
-		canvas.tag_bind("btn" + self.id, "<Leave>", self.on_leave);
-		canvas.tag_bind("btn" + self.id, "<Button-1>", self.on_click);
+		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
+		canvas.tag_bind(self.tag_name, "<Leave>", self.on_leave);
+		canvas.tag_bind(self.tag_name, "<Button-1>", self.on_click);
 
 	def on_enter(self, event):
-		self.canvas.itemconfig("btn" + self.id, fill=self.hovered_background);
+		self.canvas.itemconfig(self.tag_name, fill=self.hovered_background);
 		self.canvas.itemconfig("text" + self.id, fill=self.hovered_foreground);
 
 	def on_leave(self, event):
-		self.canvas.itemconfig("btn" + self.id, fill=self.normal_background);
+		self.canvas.itemconfig(self.tag_name, fill=self.normal_background);
 		self.canvas.itemconfig("text" + self.id, fill=self.normal_foreground);
 
 	def on_click(self, event):
