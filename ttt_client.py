@@ -240,21 +240,28 @@ class TTTClientGame(TTTClient):
 			+ "|" + s[3] + "|" + s[4]  + "|" + s[5] + "|\n" 
 			+ "|" + s[6] + "|" + s[7]  + "|" + s[8] + "|\n");
 
-# If there are more than 3 arguments 
-if(len(argv) >= 3):
-	# Set the address to argument 1, and port number to argument 2
-	address = argv[1];
-	port_number = argv[2];
-else:
-	# Ask the user to input the address and port number
-	address = input("Please enter the address:");
-	port_number = input("Please enter the port:");
+# Define the main program
+def main():
+	# If there are more than 3 arguments 
+	if(len(argv) >= 3):
+		# Set the address to argument 1, and port number to argument 2
+		address = argv[1];
+		port_number = argv[2];
+	else:
+		# Ask the user to input the address and port number
+		address = input("Please enter the address:");
+		port_number = input("Please enter the port:");
 
-# Initialize the client object
-client = TTTClientGame();
-# Connect to the server
-client.connect(address, port_number);
-# Start the game
-client.start_game();
-# Close the client
-client.close();
+	# Initialize the client object
+	client = TTTClientGame();
+	# Connect to the server
+	client.connect(address, port_number);
+	# Start the game
+	client.start_game();
+	# Close the client
+	client.close();
+
+if __name__ == "__main__":
+	# If this script is running as a standalone program,
+	# start the main program.
+	main();

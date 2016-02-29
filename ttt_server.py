@@ -82,7 +82,6 @@ class TTTServerGame(TTTServer):
 				print("Failed to create thread.");
 				self.players.remove(new_player);
 
-	# The client thread for each player 
 	def __client_thread(self, player):
 		"""(Private) This is the client thread."""
 		# Wrap the whole client thread with a try and catch so that the 
@@ -136,7 +135,6 @@ class TTTServerGame(TTTServer):
 		except:
 			print("Player " + str(player.id) + " disconnected.");
 
-	# This function is to match a player with another one
 	def matching_player(self, player):
 		"""Goes through the players list and try to match the player with 
 		another player who is also waiting to play. Returns any matched 
@@ -251,9 +249,8 @@ class Player:
 		except:
 			pass;
 		# Raise an error so that the client thread can finish
-		raise Exception;	
+		raise Exception;
 
-# Define the Game class
 class Game:
 	"""Game class describes a game with two different players."""
 
@@ -350,19 +347,27 @@ class Game:
 		# The result cannot be determined yet
 		return -1;
 
-# If there are more than 2 arguments 
-if(len(argv) >= 2):
-	# Set port number to argument 1
-	port_number = argv[1];
-else:
-	# Ask the user to input port number
-	port_number = input("Please enter the port:");
+# Define the main program
+def main():
+	# If there are more than 2 arguments 
+	if(len(argv) >= 2):
+		# Set port number to argument 1
+		port_number = argv[1];
+	else:
+		# Ask the user to input port number
+		port_number = input("Please enter the port:");
 
-# Initialize the server object
-server = TTTServerGame();
-# Bind the server with the port 
-server.bind(port_number);
-# Start the server
-server.start();
-# Close the server
-server.close();
+	# Initialize the server object
+	server = TTTServerGame();
+	# Bind the server with the port 
+	server.bind(port_number);
+	# Start the server
+	server.start();
+	# Close the server
+	server.close();
+
+if __name__ == "__main__":
+	# If this script is running as a standalone program,
+	# start the main program.
+	main();
+

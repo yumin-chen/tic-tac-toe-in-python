@@ -2,6 +2,9 @@ References
 ========================
 Here is a list of external sources that I learned from when I was doing this project.
 
+* effbot.org: What is 'if __name__ == "__main__"' for? 
+	<http://effbot.org/pyfaq/tutor-what-is-if-name-main-for.htm>  
+
 
 * The Python Standard Library: 6. Built-in Exceptions  
 	<http://docs.python.org/2/library/exceptions.html>  
