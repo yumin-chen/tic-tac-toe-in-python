@@ -46,6 +46,8 @@ while True:
 
 # Define the Player class
 class Player:
+	# Count the players (for generating unique IDs)
+	count = 0;
 
 	def send(self, command_type, msg):
 		# A 1 byte command_type character is put at the front of the message as a communication convention
@@ -91,6 +93,8 @@ class Player:
 			self.match.send("Q", "The other player has lost connection with the server.\nGame over.");
 		except:
 			pass;
+		# Finish the client thread
+		raise Error;
 
 	def send_match_info(self):
 		# Sent to client the assigned role
@@ -103,6 +107,10 @@ class Player:
 		# Waiting for client to confirm
 		if(self.recv(2,"c") != "3"):
 			self.connection_lost();
+
+	def remove_self(self):
+		players.remove(self);
+				
 
 # Define the Game class
 class Game:
@@ -223,6 +231,9 @@ def gameThread(game):
 				return;
 	except:
 		print("Game between " + str(game.player1.id) + " and " + str(game.player2.id) + " is finished unexpectedly.");
+	finally:
+		game.player1.remove_self();
+		game.player2.remove_self();
 
 
 # The client thread for each player 
@@ -281,7 +292,8 @@ while True:
 	# Initialize a new Player object to store all the client's infomation
 	new_player = Player();
 	# Generate an id for the client
-	new_player.id = len(players) + 1;
+	Player.count = Player.count + 1
+	new_player.id = Player.count;
 	# Assign the corresponding connection 
 	new_player.connection = connection;
 	# Assign the corresponding client address 
@@ -291,8 +303,12 @@ while True:
 	# Push this new player object into the players array
 	players.append(new_player);
 
-	# Start a new thread to deal with this client
-	threading.Thread(target=clientThread, args=(new_player,)).start();
+	try:
+		# Start a new thread to deal with this client
+		threading.Thread(target=clientThread, args=(new_player,)).start();
+	except:
+		print("Failed to create thread.");
+		new_player.remove_self();
 
 # Close the socket
 server_socket.close();
