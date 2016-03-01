@@ -32,6 +32,9 @@ class CanvasWidget:
 		# Generate a unique tag for each widget
 		self.tag_name = self.__class__.__name__ + self.id;
 
+		# Initialize instance variables
+		self.__disabled__ = False;
+
 	def set_clickable(self, clickable):
 		if(clickable):
 			self.canvas.tag_bind(self.tag_name, "<Button-1>", self.on_click);
@@ -39,11 +42,24 @@ class CanvasWidget:
 			self.canvas.tag_unbind(self.tag_name);
 
 	def on_click(self, event):
+		if(self.__disabled__):
+			return False;
 		try:
 			self.command();
+			return True;
 		except AttributeError:
 			print("Error: " + self.__class__.__name__ + " " + self.id + " does not have a command");
 			raise;
+		return False;
+
+	def disable(self):
+		self.__disabled__ = True;
+
+	def enable(self):
+		self.__disabled__ = False;
+
+	def is_enabled(self):
+		return self.__disabled__;
 
 	def config(self, **kwargs):
 		return self.canvas.itemconfig(self.tag_name, **kwargs);
@@ -121,6 +137,45 @@ class CanvasButton(CanvasWidget):
 		self.canvas.itemconfig(self.tag_name, fill=self.normal_background);
 		self.canvas.itemconfig("text" + self.id, fill=self.normal_foreground);
 
+class CanvasSquare(CanvasWidget):
+
+	def __init__(self, canvas, x, y, width, normal_background, hovered_background, 
+		disabled_background):
+
+		# Initialize super class
+		CanvasWidget.__init__(self, canvas);
+
+		# Set color scheme for different states
+		self.normal_background = normal_background;
+		self.hovered_background = hovered_background;
+		self.disabled_background = disabled_background;
+
+		# Create the circle background
+		canvas.create_rectangle(x - width/2, y - width/2, x + width/2, y + width/2, 
+			fill=self.normal_background, outline="", tags=(self.tag_name, "oval" + self.id));
+
+		# Bind events
+		canvas.tag_bind(self.tag_name, "<Enter>", self.on_enter);
+		canvas.tag_bind(self.tag_name, "<Leave>", self.on_leave);
+		self.set_clickable(True);
+
+	def on_enter(self, event):
+		if(self.__disabled__):
+			return False;
+		self.canvas.itemconfig(self.tag_name, fill=self.hovered_background);
+
+	def on_leave(self, event):
+		if(self.__disabled__):
+			return False;
+		self.canvas.itemconfig(self.tag_name, fill=self.normal_background);
+
+	def disable(self):
+		super().disable();
+		self.canvas.itemconfig(self.tag_name, fill=self.disabled_background);
+
+	def enable(self):
+		super().enable();
+		self.canvas.itemconfig(self.tag_name, fill=self.normal_background);
 
 # Define a subclass of Canvas as an abstract base scene class
 class BaseScene(tkinter.Canvas):
@@ -156,6 +211,13 @@ class BaseScene(tkinter.Canvas):
 
 		return CanvasButton(self, x, y, button_text, 
 			normal_background, hovered_background, normal_foreground, hovered_foreground);
+
+	def create_square(self, x, y, width,
+		normal_background=C_COLOR_BLUE, hovered_background=C_COLOR_BLUE_DARK, 
+		disabled_background=C_COLOR_BLUE_LIGHT):
+
+		return CanvasSquare(self, x, y, width,
+			normal_background, hovered_background, disabled_background);
 
 	def create_clickable_label(self, x, y, button_text, 
 		normal_foreground=C_COLOR_BLUE_DARK, hovered_foreground=C_COLOR_BLUE_LIGHT):
@@ -273,13 +335,18 @@ class MainGameScene(BaseScene):
 	def __init__(self, parent):
 		BaseScene.__init__(self, parent);
 
+		# Initialize instance variables
+		self.board_grids_power = 3; # Make it a 3x3 grid board
+
 		# Create a blue arch at the bottom of the canvas
-		self.create_arc((-128, C_WINDOW_HEIGHT - 128, C_WINDOW_WIDTH + 128, C_WINDOW_HEIGHT + 368), 
+		self.create_arc((-128, C_WINDOW_HEIGHT - 64, C_WINDOW_WIDTH + 128, C_WINDOW_HEIGHT + 368), 
 			start=0, extent=180, fill=C_COLOR_BLUE, outline="");
 
 		# Create the return button
 		return_btn = self.create_button(C_WINDOW_WIDTH - 128, 32, "Go back");
 		return_btn.command = self.on_return_clicked;
+
+		self.draw_board(256);
 
 		# Draw the player_self_text
 		player_self_text = self.create_text(96, 128, font="Helvetica 16", fill=C_COLOR_BLUE_DARK, tags=("player_self_text"));
@@ -297,62 +364,37 @@ class MainGameScene(BaseScene):
 		# Start a new thread to deal with the client communication
 		threading.Thread(target=self.__start_client).start();
 
-	def draw_board(self, board_width, board_grid_size = 3, board_line_width = 4):
+	def draw_board(self, board_width, board_line_width = 4):
 		"""Draws the board at the center of the screen, parameter board_width 
 		determines the size of the board, e.g. 256 would mean the board is 256x256. 
-		board_grid_size determines the grid size, the default value is 3x3, 
-		board_line_width determines the line width."""
+		board_line_width determines the border line width."""
 
-		# Draw the board at the center of the screeen
-		for i in range(1, board_grid_size):
+		# Create squares for the grid board
+		self.squares = [None] * self.board_grids_power * self.board_grids_power;
+		for i in range(0, self.board_grids_power):
+			for j in range(0, self.board_grids_power):
+				self.squares[i+j*3] = self.create_square((C_WINDOW_WIDTH - board_width)/2 + 
+					board_width/self.board_grids_power * i + board_width / self.board_grids_power / 2,
+					(C_WINDOW_HEIGHT - board_width)/2 + 
+					board_width/self.board_grids_power * j + board_width / self.board_grids_power / 2,
+					board_width / self.board_grids_power);
+				# Disable those squares to make them unclickable
+				self.squares[i+j*3].disable();
+
+		# Draw the border lines
+		for i in range(1, self.board_grids_power):
 			# Draw horizontal lines
 			self.create_line((C_WINDOW_WIDTH - board_width)/2, 
-				(C_WINDOW_HEIGHT - board_width)/2 + board_width/board_grid_size * i, 
+				(C_WINDOW_HEIGHT - board_width)/2 + board_width/self.board_grids_power * i, 
 				(C_WINDOW_WIDTH + board_width)/2, 
-				(C_WINDOW_HEIGHT - board_width)/2 + board_width/board_grid_size * i, 
+				(C_WINDOW_HEIGHT - board_width)/2 + board_width/self.board_grids_power * i, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
 			# Draw vertical lines
-			self.create_line((C_WINDOW_WIDTH - board_width)/2 + board_width/board_grid_size * i, 
+			self.create_line((C_WINDOW_WIDTH - board_width)/2 + board_width/self.board_grids_power * i, 
 				(C_WINDOW_HEIGHT - board_width)/2, 
-				(C_WINDOW_WIDTH - board_width)/2 + board_width/board_grid_size * i, 
+				(C_WINDOW_WIDTH - board_width)/2 + board_width/self.board_grids_power * i, 
 				(C_WINDOW_HEIGHT + board_width)/2, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
-
-		# Create an invisible rectangle on each square for events handling
-		for i in range(0, board_grid_size):
-			for j in range(0, board_grid_size):
-				rect = self.create_rectangle((C_WINDOW_WIDTH - board_width)/2 + 
-					board_width/board_grid_size * i + board_line_width, 
-					(C_WINDOW_HEIGHT - board_width)/2 + 
-					board_width/board_grid_size * j + board_line_width, 
-					(C_WINDOW_WIDTH - board_width)/2 + 
-					board_width/board_grid_size * (i + 1) - board_line_width, 
-					(C_WINDOW_HEIGHT - board_width)/2 + 
-					board_width/board_grid_size * (j + 1) - board_line_width, fill="", tags=("squares"));
-				self.tag_bind(rect, "<Enter>", lambda event, index=i+j*3: self.__on_enter_squares(event, index));
-
-
-
-		# Bind events
-		#self.tag_bind("squares", "<Enter>", self.__on_enter_squares);
-
-	def __on_enter_squares(self, event, index):
-		self.delete("the_O");
-		j = int(index / 3);
-		i = index % 3;
-		print(i, j);
-		board_width = 256;
-		board_grid_size = 3;
-		board_line_width = 4;
-		self.create_oval((C_WINDOW_WIDTH - board_width)/2 + 
-					board_width/board_grid_size * i + board_line_width, 
-					(C_WINDOW_HEIGHT - board_width)/2 + 
-					board_width/board_grid_size * j + board_line_width, 
-					(C_WINDOW_WIDTH - board_width)/2 + 
-					board_width/board_grid_size * (i + 1) - board_line_width, 
-					(C_WINDOW_HEIGHT - board_width)/2 + 
-					board_width/board_grid_size * (j + 1) - board_line_width
-					, fill="", outline=C_COLOR_BLUE_DARK, width=4, tags=("the_O"));
 
 	def __start_client(self):
 		# Initialize the client object
@@ -395,7 +437,35 @@ class TTTClientGameGUI(TTTClientGame):
 		self.canvas.set_notif_text("Game started. You are the \"" + self.role + "\"");
 		self.canvas.itemconfig("player_self_text", text="Player " + str(self.player_id));
 		self.canvas.itemconfig("player_match_text", text="Player " + str(self.match_id));
-		self.canvas.draw_board(256);
+
+	def __player_move__(self):
+		"""(Override) Lets the user to make a move and sends it back to the
+		server. This function might be overridden by the GUI program."""
+		for i in range(0, self.canvas.board_grids_power * 
+			self.canvas.board_grids_power):
+			# Enable those squares to make them clickable
+			self.canvas.squares[i].enable();
+			# Bind their commands
+			self.canvas.squares[i].command = lambda self=self, i=i: self.__move_made(i);
+
+		while self.canvas.squares[0].is_enabled():
+			# Wait until the user has clicked on something
+			pass;
+
+	def __move_made(self, index):
+		print("User chose " + str(index + 1));
+		# Send the position back to the server
+		self.s_send("i", str(index + 1));
+
+		for i in range(0, self.canvas.board_grids_power * 
+			self.canvas.board_grids_power):
+			# Disable those squares to make them unclickable
+			self.canvas.squares[i].disable();
+			# Remove their commands
+			self.canvas.squares[i].command = None;
+
+
+
 
 		
 # Define the main program

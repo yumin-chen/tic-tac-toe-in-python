@@ -140,13 +140,16 @@ class TTTClientGame(TTTClient):
 		# the GUI program to interact with the user interface.
 		self.__game_started__();
 
+		# Start the main loop
+		self.__main_loop();
+
 	def __game_started__(self):
 		"""(Private) This function is called when the game is getting started."""
 		# This is a virtual function
 		# The actual implementation is in the subclass (the GUI program)
 		return;
 
-	def main_loop(self):
+	def __main_loop(self):
 		"""The main game loop."""
 		while True:
 			# Get the board content from the server
@@ -194,11 +197,11 @@ class TTTClientGame(TTTClient):
 			# If it's this player's turn to move, print out the current 
 			# board with " " converted to the corresponding position number
 			print("Current board:\n" + TTTClientGame.format_board(
-				TTTClientGame.show_board_pos(board_content)));
+				TTTClientGame.show_board_pos(board_string)));
 		else:
 			# Print out the current board
 			print("Current board:\n" + TTTClientGame.format_board(
-				board_content));
+				board_string));
 
 	def __player_move__(self):
 		"""(Private) Lets the user input the move and sends it back to the
@@ -278,8 +281,6 @@ def main():
 	try:
 		# Start the game
 		client.start_game();
-		# Start the main loop
-		client.main_loop();
 	except:
 		print(("Game finished unexpectedly!"));
 		raise;
