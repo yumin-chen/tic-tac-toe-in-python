@@ -2,6 +2,15 @@ References
 ========================
 Here is a list of external sources that I learned from when I was doing this project.
 
+
+* Python: Lambda Functions  
+	<http://www.secnetix.de/olli/Python/lambda_functions.hawk>  
+
+
+* Stack overflow: Getting the widget that triggered an Event?  
+	<http://stackoverflow.com/questions/4299145/getting-the-widget-that-triggered-an-event>  
+
+
 * effbot.org: What is 'if __name__ == "__main__"' for? 
 	<http://effbot.org/pyfaq/tutor-what-is-if-name-main-for.htm>  
 

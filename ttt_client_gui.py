@@ -434,6 +434,7 @@ class MainGameScene(BaseScene):
 
 		# Initialize instance variables
 		self.board_grids_power = 3; # Make it a 3x3 grid board
+		self.board_width = 256; # The board is 256x256 wide
 
 		# Create a blue arch at the bottom of the canvas
 		self.create_arc((-128, C_WINDOW_HEIGHT - 64, C_WINDOW_WIDTH + 128, 
@@ -444,7 +445,7 @@ class MainGameScene(BaseScene):
 		return_btn = self.create_button(C_WINDOW_WIDTH - 128, 32, "Go back");
 		return_btn.command = self.__on_return_clicked__;
 
-		self.draw_board(256);
+		self.draw_board();
 
 		# Draw the player_self_text
 		player_self_text = self.create_text(96, 128, font="Helvetica 16", 
@@ -467,43 +468,42 @@ class MainGameScene(BaseScene):
 		# Start a new thread to deal with the client communication
 		threading.Thread(target=self.__start_client__).start();
 
-	def draw_board(self, board_width, board_line_width = 4):
-		"""Draws the board at the center of the screen, parameter board_width 
-		determines the size of the board, e.g. 256 would mean the board is 
-		256x256. board_line_width determines the border line width."""
+	def draw_board(self, board_line_width = 4):
+		"""Draws the board at the center of the screen, parameter 
+		board_line_width determines the border line width."""
 
 		# Create squares for the grid board
 		self.squares = [None] * self.board_grids_power * self.board_grids_power;
 		for i in range(0, self.board_grids_power):
 			for j in range(0, self.board_grids_power):
 				self.squares[i+j*3] = self.create_square(
-					(C_WINDOW_WIDTH - board_width)/2 + 
-					board_width/self.board_grids_power * i + 
-					board_width / self.board_grids_power / 2,
-					(C_WINDOW_HEIGHT - board_width)/2 + 
-					board_width/self.board_grids_power * j + 
-					board_width / self.board_grids_power / 2,
-					board_width / self.board_grids_power);
+					(C_WINDOW_WIDTH - self.board_width)/2 + 
+					self.board_width/self.board_grids_power * i + 
+					self.board_width / self.board_grids_power / 2,
+					(C_WINDOW_HEIGHT - self.board_width)/2 + 
+					self.board_width/self.board_grids_power * j + 
+					self.board_width / self.board_grids_power / 2,
+					self.board_width / self.board_grids_power);
 				# Disable those squares to make them unclickable
 				self.squares[i+j*3].disable();
 
 		# Draw the border lines
 		for i in range(1, self.board_grids_power):
 			# Draw horizontal lines
-			self.create_line((C_WINDOW_WIDTH - board_width)/2, 
-				(C_WINDOW_HEIGHT - board_width)/2 + 
-				board_width/self.board_grids_power * i, 
-				(C_WINDOW_WIDTH + board_width)/2, 
-				(C_WINDOW_HEIGHT - board_width)/2 + 
-				board_width/self.board_grids_power * i, 
+			self.create_line((C_WINDOW_WIDTH - self.board_width)/2, 
+				(C_WINDOW_HEIGHT - self.board_width)/2 + 
+				self.board_width/self.board_grids_power * i, 
+				(C_WINDOW_WIDTH + self.board_width)/2, 
+				(C_WINDOW_HEIGHT - self.board_width)/2 + 
+				self.board_width/self.board_grids_power * i, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
 			# Draw vertical lines
-			self.create_line((C_WINDOW_WIDTH - board_width)/2 + 
-				board_width/self.board_grids_power * i, 
-				(C_WINDOW_HEIGHT - board_width)/2, 
-				(C_WINDOW_WIDTH - board_width)/2 + 
-				board_width/self.board_grids_power * i, 
-				(C_WINDOW_HEIGHT + board_width)/2, 
+			self.create_line((C_WINDOW_WIDTH - self.board_width)/2 + 
+				self.board_width/self.board_grids_power * i, 
+				(C_WINDOW_HEIGHT - self.board_width)/2, 
+				(C_WINDOW_WIDTH - self.board_width)/2 + 
+				self.board_width/self.board_grids_power * i, 
+				(C_WINDOW_HEIGHT + self.board_width)/2, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
 
 	def __start_client__(self):
@@ -517,21 +517,81 @@ class MainGameScene(BaseScene):
 		# Connect to the server
 		if(self.client.connect("localhost", "8080")):
 			# If connected to the server
-			self.set_notif_text("Server connected.");
+			self.set_notif_text("Server connected. \n" +
+				"Waiting for other players to join...");
 			# Start the game
 			self.client.start_game();
 			# Close the client
 			self.client.close();
-
-	def set_notif_text(self, text):
-		"""Sets the notification text."""
-		self.itemconfig("notif_text", text=text);
 
 	def __on_return_clicked__(self):
 		"""(Private) Switches back to the welcome scene when the return 
 		button is clicked."""
 		self.pack_forget();
 		self.welcome_scene.pack();
+
+	def set_notif_text(self, text):
+		"""Sets the notification text."""
+		self.itemconfig("notif_text", text=text);
+
+	def update_board_content(self, board_string):
+		"""Redraws the board content with new board_string."""
+		if(len(board_string) != 
+			self.board_grids_power * self.board_grids_power):
+			# If board_string is in valid
+			print("The board string should be " + 
+				str(self.board_grids_power * self.board_grids_power) 
+				+ " characters long.");
+			# Throw an error
+			raise Exception;
+
+		# Delete everything on the board
+		self.delete("board_content");
+
+		p = 16; # Padding
+
+		# Draw the board content
+		for i in range(0, self.board_grids_power):
+			for j in range(0, self.board_grids_power):
+
+				if(board_string[i+j*3] == "O"):
+					# If this is an "O"
+					self.create_oval(
+						(C_WINDOW_WIDTH - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * i + p,
+						(C_WINDOW_HEIGHT - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * j + p,
+						(C_WINDOW_WIDTH - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * (i + 1) - p,
+						(C_WINDOW_HEIGHT - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * (j + 1) - p,
+						fill="", outline=C_COLOR_BLUE_DARK, width=4,
+						tags="board_content");
+				elif(board_string[i+j*3] == "X"):
+					# If this is an "X"
+					self.create_line(
+						(C_WINDOW_WIDTH - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * i + p,
+						(C_WINDOW_HEIGHT - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * j + p,
+						(C_WINDOW_WIDTH - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * (i + 1) - p,
+						(C_WINDOW_HEIGHT - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * (j + 1) - p,
+						fill=C_COLOR_BLUE_DARK, width=4,
+						tags="board_content");
+					self.create_line(
+						(C_WINDOW_WIDTH - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * (i + 1) - p,
+						(C_WINDOW_HEIGHT - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * j + p,
+						(C_WINDOW_WIDTH - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * i + p,
+						(C_WINDOW_HEIGHT - self.board_width)/2 + 
+						self.board_width/self.board_grids_power * (j + 1) - p,
+						fill=C_COLOR_BLUE_DARK, width=4,
+						tags="board_content");
+
 
 class TTTClientGameGUI(TTTClientGame):
 	"""The client implemented with GUI."""
@@ -555,9 +615,22 @@ class TTTClientGameGUI(TTTClientGame):
 		self.canvas.itemconfig("player_match_text", 
 			text="Player " + str(self.match_id));
 
+	def __update_board__(self, command, board_string):
+		"""(Override) Updates the board."""
+		self.canvas.update_board_content(board_string);
+		if(command == "D"):
+			# If the result is a draw
+			self.canvas.set_notif_text("It's a draw.");
+		elif(command == "W"):
+			# If this player wins
+			self.canvas.set_notif_text("You WIN!");
+		elif(command == "L"):
+			# If this player loses
+			self.canvas.set_notif_text("You lose.");
+
 	def __player_move__(self):
 		"""(Override) Lets the user to make a move and sends it back to the
-		server. This function might be overridden by the GUI program."""
+		server. """
 		for i in range(0, self.canvas.board_grids_power * 
 			self.canvas.board_grids_power):
 			# Enable those squares to make them clickable
