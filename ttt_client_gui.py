@@ -447,16 +447,16 @@ class MainGameScene(BaseScene):
 
 		self.draw_board();
 
-		# Draw the player_self_text
+		# Create the player_self_text
 		player_self_text = self.create_text(96, 128, font="Helvetica 16", 
 			fill=C_COLOR_BLUE_DARK, tags=("player_self_text"));
-		# Draw the player_match_text
+		# Create the player_match_text
 		player_match_text = self.create_text(C_WINDOW_WIDTH - 96, 128, 
 			font="Helvetica 16", fill=C_COLOR_BLUE_DARK, 
 			tags=("player_match_text"));
 
-		# Draw the notif text
-		notif_text = self.create_text(8, C_WINDOW_HEIGHT-64, anchor="w",
+		# Create the notif text
+		notif_text = self.create_text(8, C_WINDOW_HEIGHT-8, anchor="sw",
 			font="Helvetica 16", fill=C_COLOR_BLUE_DARK, tags=("notif_text"));
 
 		# Tag all of the drawn widgets for later reference
