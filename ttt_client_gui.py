@@ -4,6 +4,10 @@ import tkinter
 from tkinter import messagebox
 # Import the webbroswer module for opening a link
 import webbrowser
+# Import the client module
+from ttt_client import TTTClientGame
+# Import multi-threading module
+import threading
 
 # Constants 
 C_WINDOW_WIDTH = 640;
@@ -37,11 +41,12 @@ class CanvasWidget:
 	def on_click(self, event):
 		try:
 			self.command();
-		except:
+		except AttributeError:
 			print("Error: " + self.__class__.__name__ + " " + self.id + " does not have a command");
+			raise;
 
-	def config(self, **args):
-		return self.canvas.itemconfig(self.tag_name, **args);
+	def config(self, **kwargs):
+		return self.canvas.itemconfig(self.tag_name, **kwargs);
 
 class CanvasClickableLabel(CanvasWidget):
 
@@ -115,6 +120,7 @@ class CanvasButton(CanvasWidget):
 	def on_leave(self, event):
 		self.canvas.itemconfig(self.tag_name, fill=self.normal_background);
 		self.canvas.itemconfig("text" + self.id, fill=self.normal_foreground);
+
 
 # Define a subclass of Canvas as an abstract base scene class
 class BaseScene(tkinter.Canvas):
@@ -275,10 +281,28 @@ class MainGameScene(BaseScene):
 		return_btn = self.create_button(C_WINDOW_WIDTH - 128, 32, "Go back");
 		return_btn.command = self.on_return_clicked;
 
-		# Draw the board
-		board_line_width = 4; # Line width 
-		board_width = 256; # Board takes 256x256 pixels
-		board_grid_size = 3; # Draw a 3x3 board
+		# Draw the player_self_text
+		player_self_text = self.create_text(96, 128, font="Helvetica 16", fill=C_COLOR_BLUE_DARK, tags=("player_self_text"));
+		# Draw the player_match_text
+		player_match_text = self.create_text(C_WINDOW_WIDTH - 96, 128, font="Helvetica 16", fill=C_COLOR_BLUE_DARK, tags=("player_match_text"));
+
+		# Draw the notif text
+		notif_text = self.create_text(8, C_WINDOW_HEIGHT-64, font="Helvetica 16", fill=C_COLOR_BLUE_DARK, tags=("notif_text"), anchor="w");
+
+		# Tag all of the drawn widgets for later reference
+		self.addtag_all("all");
+
+	def pack(self):
+		super().pack();
+		# Start a new thread to deal with the client communication
+		threading.Thread(target=self.__start_client).start();
+
+	def draw_board(self, board_width, board_grid_size = 3, board_line_width = 4):
+		"""Draws the board at the center of the screen, parameter board_width 
+		determines the size of the board, e.g. 256 would mean the board is 256x256. 
+		board_grid_size determines the grid size, the default value is 3x3, 
+		board_line_width determines the line width."""
+
 		for i in range(1, board_grid_size):
 			# Draw the board at the center of the screeen
 
@@ -296,44 +320,88 @@ class MainGameScene(BaseScene):
 				(C_WINDOW_HEIGHT + board_width)/2, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
 
-		# Tag all of the drawn widgets for later reference
-		self.addtag_all("all");
+	def __start_client(self):
+		# Initialize the client object
+		self.client = TTTClientGameGUI();
+		# Gives the client a reference to self 
+		self.client.canvas = self;
+		# Set the notif text
+		self.set_notif_text("Connecting to the game server...");
+		# Connect to the server
+		if(self.client.connect("localhost", "8080")):
+			# If connected to the server
+			self.set_notif_text("Server connected.");
+			# Start the game
+			self.client.start_game();
+			# Close the client
+			self.client.close();
+
+	def set_notif_text(self, text):
+		self.itemconfig("notif_text", text=text);
 
 	def on_return_clicked(self):
 		self.pack_forget();
 		self.welcome_scene.pack();
 
-# Create a Tkinter object
-root = tkinter.Tk();
-# Set window title
-root.title("Tic Tac Toe");
-# Set window minimun size
-root.minsize(C_WINDOW_MIN_WIDTH, C_WINDOW_MIN_HEIGHT);
-# Set window size
-root.geometry(str(C_WINDOW_WIDTH) + "x" + str(C_WINDOW_HEIGHT));
+class TTTClientGameGUI(TTTClientGame):
+	"""The client implemented with GUI."""
 
-try:
-	# Set window icon
-	root.iconbitmap("res/icon.ico");
-except:	
-	# An error has been caught when setting the icon
-	tkinter.messagebox.showerror("Error", "Can't set the window icon.");
+	def __connect_failed__(self):
+		"""(Override) Updates the GUI to notify the user that the connection
+		couldn't be established"""
+		# Write the notif text
+		self.canvas.set_notif_text("Can't connect to the game server.\n" + 
+			"Plase check your connection.");
+		# Throw an error and finish the client thread
+		raise Exception;
 
-# Initialize the welcome scene
-welcome_scene = WelcomeScene(root);
-# Initialize the about scene
-about_scene = AboutScene(root);
-# Initialize the main game scene
-main_game_scene = MainGameScene(root);
+	def __game_started__(self):
+		"""(Override) Updates the GUI to notify the user that the game is
+		getting started"""
+		self.canvas.set_notif_text("Game started. You are the \"" + self.role + "\"");
+		self.canvas.itemconfig("player_self_text", text="Player " + str(self.player_id));
+		self.canvas.itemconfig("player_match_text", text="Player " + str(self.match_id));
+		self.canvas.draw_board(256);
 
-# Give a reference for switching between scenes
-welcome_scene.about_scene = about_scene;
-welcome_scene.main_game_scene = main_game_scene; 
-about_scene.welcome_scene = welcome_scene;
-main_game_scene.welcome_scene = welcome_scene;
+		
+# Define the main program
+def main():
+	# Create a Tkinter object
+	root = tkinter.Tk();
+	# Set window title
+	root.title("Tic Tac Toe");
+	# Set window minimun size
+	root.minsize(C_WINDOW_MIN_WIDTH, C_WINDOW_MIN_HEIGHT);
+	# Set window size
+	root.geometry(str(C_WINDOW_WIDTH) + "x" + str(C_WINDOW_HEIGHT));
 
-# Start showing the welcome scene
-welcome_scene.pack();
-    
-# Main loop
-root.mainloop();
+	try:
+		# Set window icon
+		root.iconbitmap("res/icon.ico");
+	except:	
+		# An error has been caught when setting the icon
+		tkinter.messagebox.showerror("Error", "Can't set the window icon.");
+
+	# Initialize the welcome scene
+	welcome_scene = WelcomeScene(root);
+	# Initialize the about scene
+	about_scene = AboutScene(root);
+	# Initialize the main game scene
+	main_game_scene = MainGameScene(root);
+
+	# Give a reference for switching between scenes
+	welcome_scene.about_scene = about_scene;
+	welcome_scene.main_game_scene = main_game_scene; 
+	about_scene.welcome_scene = welcome_scene;
+	main_game_scene.welcome_scene = welcome_scene;
+
+	# Start showing the welcome scene
+	welcome_scene.pack();
+	    
+	# Main loop
+	root.mainloop();
+
+if __name__ == "__main__":
+	# If this script is running as a standalone program,
+	# start the main program.
+	main();

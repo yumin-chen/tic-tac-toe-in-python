@@ -25,14 +25,19 @@ class TTTClient:
 				# Caught an error
 				print("There is an error when trying to connect to " + 
 					str(address) + "::" + str(port_number));
-				# Ask the user what to do with the error
-				choice = input("[A]bort, [C]hange address and port, or [R]etry?");
-				if(choice.lower() == "a"):
-					exit();
-				elif(choice.lower() == "c"):
-					address = input("Please enter the address:");
-					port_number = input("Please enter the port:");
+				self.__connect_failed__();
 		return False;
+
+	def __connect_failed__(self):
+		"""(Private) This function will be called when the attempt to connect
+		failed. This function might be overridden by the GUI program."""
+		# Ask the user what to do with the error
+		choice = input("[A]bort, [C]hange address and port, or [R]etry?");
+		if(choice.lower() == "a"):
+			exit();
+		elif(choice.lower() == "c"):
+			address = input("Please enter the address:");
+			port_number = input("Please enter the port:");
 
 	def s_send(self, command_type, msg):
 		"""Sends a message to the server with an agreed command type token 
@@ -110,81 +115,50 @@ class TTTClientGame(TTTClient):
 
 	def start_game(self):
 		"""Starts the game and gets basic game information from the server."""
-		# Wrap the whole game logic with a gigantic try and catch 
-		# to handle the errors gracefully
-		try:
-			# Receive the player's ID from the server
-			self.player_id = int(self.s_recv(128, "A"));
-			# Confirm the ID has been received
-			self.s_send("c","1");
+		# Receive the player's ID from the server
+		self.player_id = int(self.s_recv(128, "A"));
+		# Confirm the ID has been received
+		self.s_send("c","1");
 
-			print("Welcome to Tic Tac Toe online, player " + str(self.player_id) 
-				+ "\nPlease wait for another player to join the game...");
+		print("Welcome to Tic Tac Toe online, player " + str(self.player_id) 
+			+ "\nPlease wait for another player to join the game...");
 
-			# Receive the assigned role from the server
-			self.role = str(self.s_recv(2, "R"));
-			# Confirm the assigned role has been received
-			self.s_send("c","2");
+		# Receive the assigned role from the server
+		self.role = str(self.s_recv(2, "R"));
+		# Confirm the assigned role has been received
+		self.s_send("c","2");
 
-			# Receive the mactched player's ID from the server
-			self.match_id = int(self.s_recv(128, "I"));
-			# Confirm the mactched player's ID has been received
-			self.s_send("c","3");
+		# Receive the mactched player's ID from the server
+		self.match_id = int(self.s_recv(128, "I"));
+		# Confirm the mactched player's ID has been received
+		self.s_send("c","3");
 
-			print(("You are now matched with player " + str(self.match_id) 
-				+ "\nYou are the \"" + self.role + "\""));
+		print(("You are now matched with player " + str(self.match_id) 
+			+ "\nYou are the \"" + self.role + "\""));
 
-			# Go to the main loop
-			self.__main_loop();
-		except:
-			print(("Game finished unexpectedly!"));
+		# Call the __game_started() function, which might be implemented by
+		# the GUI program to interact with the user interface.
+		self.__game_started__();
 
-	def __main_loop(self):
-		"""(Private) The main game loop."""
+	def __game_started__(self):
+		"""(Private) This function is called when the game is getting started."""
+		# This is a virtual function
+		# The actual implementation is in the subclass (the GUI program)
+		return;
+
+	def main_loop(self):
+		"""The main game loop."""
 		while True:
 			# Get the board content from the server
 			board_content = self.s_recv(10, "B");
 			# Get the command from the server 
 			command = self.s_recv(2, "C");
-
-			if(command == "Y"):
-				# If it's this player's turn to move, print out the current 
-				# board with " " converted to the corresponding position number
-				print("Current board:\n" + TTTClientGame.format_board(
-					TTTClientGame.show_board_pos(board_content)));
-			else:
-				# Print out the current board
-				print("Current board:\n" + TTTClientGame.format_board(
-					board_content));
+			# Update the board
+			self.__update_board__(command, board_content);
 
 			if(command == "Y"):
 				# If it's this player's turn to move
-				while True:
-					# Prompt the user to enter a position
-					try:
-						position = int(input('Please enter the position (1~9):'));
-					except:
-						print("Invalid input.");
-						continue;
-
-					# Ensure user-input data is valid
-					if(position >= 1 and position <= 9):
-						# If the position is between 1 and 9
-						if(board_content[position - 1] != " "):
-							# If the position is already been taken,
-							# Print out a warning
-							print("That position has already been taken." + 
-								"Please choose another one.");
-						else:
-							# If the user input is valid, break the loop
-							break;
-					else:
-						print("Please enter a value between 1 and 9 that" + 
-							"corresponds to the position on the grid board.");
-					# Loop until the user enters a valid value
-
-				# Send the position back to the server
-				self.s_send("i", str(position));
+				self.__player_move__();
 			elif(command == "N"):
 				# If the player needs to just wait
 				print("Waiting for the other player to make a move...");
@@ -211,6 +185,51 @@ class TTTClientGame(TTTClient):
 				print("Error: unknown message was sent from the server");
 				# And finish
 				break;
+
+
+	def __update_board__(self, command, board_string):
+		"""(Private) Updates the board. This function might be overridden by
+		the GUI program."""
+		if(command == "Y"):
+			# If it's this player's turn to move, print out the current 
+			# board with " " converted to the corresponding position number
+			print("Current board:\n" + TTTClientGame.format_board(
+				TTTClientGame.show_board_pos(board_content)));
+		else:
+			# Print out the current board
+			print("Current board:\n" + TTTClientGame.format_board(
+				board_content));
+
+	def __player_move__(self):
+		"""(Private) Lets the user input the move and sends it back to the
+		server. This function might be overridden by the GUI program."""
+		while True:
+			# Prompt the user to enter a position
+			try:
+				position = int(input('Please enter the position (1~9):'));
+			except:
+				print("Invalid input.");
+				continue;
+
+			# Ensure user-input data is valid
+			if(position >= 1 and position <= 9):
+				# If the position is between 1 and 9
+				if(board_content[position - 1] != " "):
+					# If the position is already been taken,
+					# Print out a warning
+					print("That position has already been taken." + 
+						"Please choose another one.");
+				else:
+					# If the user input is valid, break the loop
+					break;
+			else:
+				print("Please enter a value between 1 and 9 that" + 
+					"corresponds to the position on the grid board.");
+			# Loop until the user enters a valid value
+
+		# Send the position back to the server
+		self.s_send("i", str(position));
+		return;
 
 	def show_board_pos(s):
 		"""(Static) Converts the empty positions " " (a space) in the board 
@@ -256,10 +275,17 @@ def main():
 	client = TTTClientGame();
 	# Connect to the server
 	client.connect(address, port_number);
-	# Start the game
-	client.start_game();
-	# Close the client
-	client.close();
+	try:
+		# Start the game
+		client.start_game();
+		# Start the main loop
+		client.main_loop();
+	except:
+		print(("Game finished unexpectedly!"));
+		raise;
+	finally:
+		# Close the client
+		client.close();
 
 if __name__ == "__main__":
 	# If this script is running as a standalone program,
