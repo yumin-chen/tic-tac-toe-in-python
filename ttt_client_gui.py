@@ -303,22 +303,56 @@ class MainGameScene(BaseScene):
 		board_grid_size determines the grid size, the default value is 3x3, 
 		board_line_width determines the line width."""
 
+		# Draw the board at the center of the screeen
 		for i in range(1, board_grid_size):
-			# Draw the board at the center of the screeen
-
 			# Draw horizontal lines
 			self.create_line((C_WINDOW_WIDTH - board_width)/2, 
 				(C_WINDOW_HEIGHT - board_width)/2 + board_width/board_grid_size * i, 
 				(C_WINDOW_WIDTH + board_width)/2, 
 				(C_WINDOW_HEIGHT - board_width)/2 + board_width/board_grid_size * i, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
-
 			# Draw vertical lines
 			self.create_line((C_WINDOW_WIDTH - board_width)/2 + board_width/board_grid_size * i, 
 				(C_WINDOW_HEIGHT - board_width)/2, 
 				(C_WINDOW_WIDTH - board_width)/2 + board_width/board_grid_size * i, 
 				(C_WINDOW_HEIGHT + board_width)/2, 
 				fill=C_COLOR_BLUE_DARK, width=board_line_width);
+
+		# Create an invisible rectangle on each square for events handling
+		for i in range(0, board_grid_size):
+			for j in range(0, board_grid_size):
+				rect = self.create_rectangle((C_WINDOW_WIDTH - board_width)/2 + 
+					board_width/board_grid_size * i + board_line_width, 
+					(C_WINDOW_HEIGHT - board_width)/2 + 
+					board_width/board_grid_size * j + board_line_width, 
+					(C_WINDOW_WIDTH - board_width)/2 + 
+					board_width/board_grid_size * (i + 1) - board_line_width, 
+					(C_WINDOW_HEIGHT - board_width)/2 + 
+					board_width/board_grid_size * (j + 1) - board_line_width, fill="", tags=("squares"));
+				self.tag_bind(rect, "<Enter>", lambda event, index=i+j*3: self.__on_enter_squares(event, index));
+
+
+
+		# Bind events
+		#self.tag_bind("squares", "<Enter>", self.__on_enter_squares);
+
+	def __on_enter_squares(self, event, index):
+		self.delete("the_O");
+		j = int(index / 3);
+		i = index % 3;
+		print(i, j);
+		board_width = 256;
+		board_grid_size = 3;
+		board_line_width = 4;
+		self.create_oval((C_WINDOW_WIDTH - board_width)/2 + 
+					board_width/board_grid_size * i + board_line_width, 
+					(C_WINDOW_HEIGHT - board_width)/2 + 
+					board_width/board_grid_size * j + board_line_width, 
+					(C_WINDOW_WIDTH - board_width)/2 + 
+					board_width/board_grid_size * (i + 1) - board_line_width, 
+					(C_WINDOW_HEIGHT - board_width)/2 + 
+					board_width/board_grid_size * (j + 1) - board_line_width
+					, fill="", outline=C_COLOR_BLUE_DARK, width=4, tags=("the_O"));
 
 	def __start_client(self):
 		# Initialize the client object
