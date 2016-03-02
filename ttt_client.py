@@ -68,8 +68,16 @@ class TTTClient:
 				print(msg[1:] + why_quit);
 				# Throw an error
 				raise Exception;
+			# If received an echo signal from the server
+			elif(msg[0] == "E"):
+				# Echo the message back to the server
+				self.s_send("e", msg[1:]);
+				# Recursively retrive the desired message
+				return self.s_recv(size, expected_type);
 			# If the command type token is not the expected type
 			elif(msg[0] != expected_type):
+				print("The received command type \"" + msg[0] + "\" does not " + 
+					"match the expected type \"" + expected_type + "\".");
 				# Connection lost
 				self.__connection_lost();
 			# If received an integer from the server
@@ -120,8 +128,8 @@ class TTTClientGame(TTTClient):
 		# Confirm the ID has been received
 		self.s_send("c","1");
 
-		print("Welcome to Tic Tac Toe online, player " + str(self.player_id) 
-			+ "\nPlease wait for another player to join the game...");
+		# Tell the user that connection has been established
+		self.__connected__();
 
 		# Receive the assigned role from the server
 		self.role = str(self.s_recv(2, "R"));
@@ -143,6 +151,13 @@ class TTTClientGame(TTTClient):
 		# Start the main loop
 		self.__main_loop();
 
+	def __connected__(self):
+		"""(Private) This function is called when the client is successfully
+		connected to the server. This might be overridden by the GUI program."""
+		# Welcome the user
+		print("Welcome to Tic Tac Toe online, player " + str(self.player_id) 
+			+ "\nPlease wait for another player to join the game...");
+
 	def __game_started__(self):
 		"""(Private) This function is called when the game is getting started."""
 		# This is a virtual function
@@ -161,7 +176,7 @@ class TTTClientGame(TTTClient):
 
 			if(command == "Y"):
 				# If it's this player's turn to move
-				self.__player_move__();
+				self.__player_move__(board_content);
 			elif(command == "N"):
 				# If the player needs to just wait
 				print("Waiting for the other player to make a move...");
@@ -203,7 +218,7 @@ class TTTClientGame(TTTClient):
 			print("Current board:\n" + TTTClientGame.format_board(
 				board_string));
 
-	def __player_move__(self):
+	def __player_move__(self, board_string):
 		"""(Private) Lets the user input the move and sends it back to the
 		server. This function might be overridden by the GUI program."""
 		while True:
@@ -217,7 +232,7 @@ class TTTClientGame(TTTClient):
 			# Ensure user-input data is valid
 			if(position >= 1 and position <= 9):
 				# If the position is between 1 and 9
-				if(board_content[position - 1] != " "):
+				if(board_string[position - 1] != " "):
 					# If the position is already been taken,
 					# Print out a warning
 					print("That position has already been taken." + 
@@ -283,7 +298,6 @@ def main():
 		client.start_game();
 	except:
 		print(("Game finished unexpectedly!"));
-		raise;
 	finally:
 		# Close the client
 		client.close();

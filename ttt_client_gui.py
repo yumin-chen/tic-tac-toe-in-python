@@ -517,8 +517,6 @@ class MainGameScene(BaseScene):
 		# Connect to the server
 		if(self.client.connect("localhost", "8080")):
 			# If connected to the server
-			self.set_notif_text("Server connected. \n" +
-				"Waiting for other players to join...");
 			# Start the game
 			self.client.start_game();
 			# Close the client
@@ -598,16 +596,23 @@ class TTTClientGameGUI(TTTClientGame):
 
 	def __connect_failed__(self):
 		"""(Override) Updates the GUI to notify the user that the connection
-		couldn't be established"""
+		couldn't be established."""
 		# Write the notif text
 		self.canvas.set_notif_text("Can't connect to the game server.\n" + 
 			"Plase check your connection.");
 		# Throw an error and finish the client thread
 		raise Exception;
 
+	def __connected__(self):
+		"""(Override) Updates the GUI to notify the user that the connection
+		has been established."""
+		self.canvas.set_notif_text("Server connected. \n" +
+			"Waiting for other players to join...");
+
+
 	def __game_started__(self):
 		"""(Override) Updates the GUI to notify the user that the game is
-		getting started"""
+		getting started."""
 		self.canvas.set_notif_text("Game started. " + 
 			"You are the \"" + self.role + "\"");
 		self.canvas.itemconfig("player_self_text", 
@@ -628,16 +633,18 @@ class TTTClientGameGUI(TTTClientGame):
 			# If this player loses
 			self.canvas.set_notif_text("You lose.");
 
-	def __player_move__(self):
+	def __player_move__(self, board_string):
 		"""(Override) Lets the user to make a move and sends it back to the
-		server. """
+		server."""
 		for i in range(0, self.canvas.board_grids_power * 
 			self.canvas.board_grids_power):
-			# Enable those squares to make them clickable
-			self.canvas.squares[i].enable();
-			# Bind their commands
-			self.canvas.squares[i].command = (lambda self=self, i=i: 
-				self.__move_made__(i));
+			# Check the board content and see if it's empty
+			if(board_string[i] == " "):
+				# Enable those squares to make them clickable
+				self.canvas.squares[i].enable();
+				# Bind their commands
+				self.canvas.squares[i].command = (lambda self=self, i=i: 
+					self.__move_made__(i));
 
 		while self.canvas.squares[0].is_enabled():
 			# Wait until the user has clicked on something

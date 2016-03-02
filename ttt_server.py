@@ -55,7 +55,7 @@ class TTTServerGame(TTTServer):
 	def start(self):
 		"""Starts the server and let it accept clients."""
 		# Create an array object to store connected players
-		self.players = [];
+		self.waiting_players = [];
 		# Use a simple lock to synchronize access when matching players
 		self.lock_matching = threading.Lock();
 		# Start the main loop
@@ -72,7 +72,7 @@ class TTTServerGame(TTTServer):
 			# Initialize a new Player object to store all the client's infomation
 			new_player = Player(connection);
 			# Push this new player object into the players array
-			self.players.append(new_player);
+			self.waiting_players.append(new_player);
 
 			try:
 				# Start a new thread to deal with this client
@@ -80,7 +80,6 @@ class TTTServerGame(TTTServer):
 					args=(new_player,)).start();
 			except:
 				print("Failed to create thread.");
-				self.players.remove(new_player);
 
 	def __client_thread(self, player):
 		"""(Private) This is the client thread."""
@@ -96,44 +95,40 @@ class TTTServerGame(TTTServer):
 				# Finish 
 				return;
 
-			while True:
+			while player.is_waiting:
 				# If the player is still waiting for another player to join
-				if(player.is_waiting):
-					# Try to match this player with other waiting players
-					match_result = self.matching_player(player);
+				# Try to match this player with other waiting players
+				match_result = self.matching_player(player);
 
-					if(match_result is None):
-						# If not matched, wait for a second (to keep CPU usage low) 
-						# and then continue the loop and keep trying again
-						time.sleep(1);
-					else:
-						# If matched with another player
-
-						# Initialize a new Game object to store the game's infomation
-						new_game = Game();
-						# Assign both players
-						new_game.player1 = player;
-						new_game.player2 = match_result;
-						# Create an empty string for empty board content
-						new_game.board_content = list("         ");
-
-						try:
-							# Game starts
-							new_game.start();
-						except:
-							print("Game between " + str(new_game.player1.id) + " and " + 
-								str(new_game.player2.id) + " is finished unexpectedly.");
-						finally:
-							self.players.remove(new_game.player1);
-							self.players.remove(new_game.player2);
-
-						# End this thread
-						return;
+				if(match_result is None):
+					# If not matched, wait for a second (to keep CPU usage low) 
+					time.sleep(1);
+					# Check if the player is still connected
+					player.check_connection();
 				else:
-					# If the player has already got matched, end this thread
+					# If matched with another player
+
+					# Initialize a new Game object to store the game's infomation
+					new_game = Game();
+					# Assign both players
+					new_game.player1 = player;
+					new_game.player2 = match_result;
+					# Create an empty string for empty board content
+					new_game.board_content = list("         ");
+
+					try:
+						# Game starts
+						new_game.start();
+					except:
+						print("Game between " + str(new_game.player1.id) + " and " + 
+							str(new_game.player2.id) + " is finished unexpectedly.");
+					# End this thread
 					return;
 		except:
 			print("Player " + str(player.id) + " disconnected.");
+		finally:
+			# Remove the player from the waiting list
+			self.waiting_players.remove(player);
 
 	def matching_player(self, player):
 		"""Goes through the players list and try to match the player with 
@@ -143,7 +138,7 @@ class TTTServerGame(TTTServer):
 		self.lock_matching.acquire();
 		try:
 			# Loop through each player
-			for p in self.players:
+			for p in self.waiting_players:
 				# If another player is found waiting and its not the player itself
 				if(p.is_waiting and p is not player):
 					# Matched player with p
@@ -224,10 +219,21 @@ class Player:
 			self.__connection_lost();
 		return None;
 
+	def check_connection(self):
+		"""Sends a meesage to check if the client is still properly connected."""
+		# Send the client an echo signal to ask it to repeat back
+		self.send("E", "z");
+		# Check if "e" gets sent back
+		if(self.recv(2, "e") != "z"):
+			# If the client didn't confirm, the connection might be lost
+			print("Connection echo test with player" + str(self.id) + " failed." );
+			self.__connection_lost();
+		print("Connection echo test with player" + str(self.id) + " is OK." );
+
 	def send_match_info(self):
 		"""Sends a the matched information to the client, which includes
 		the assigned role and the matched player."""
-		# Sent to client the assigned role
+		# Send to client the assigned role
 		self.send("R", self.role);
 		# Waiting for client to confirm
 		if(self.recv(2,"c") != "2"):
@@ -285,8 +291,20 @@ class Game:
 		move = int(moving_player.recv(2, "i"));
 		# Send the move to the waiting player
 		waiting_player.send("I", str(move));
-		# Write the "X" into the board
-		self.board_content[move - 1] = moving_player.role;
+		# Check if the position is empty
+		if(self.board_content[move - 1] == " "):
+			# Write the it into the board
+		 	self.board_content[move - 1] = moving_player.role;
+		# else:
+		# 	# This player is attempting to take a position that's already
+		# 	# taken. HE IS CHEATING, KILL HIM!
+		# 	moving_player.send("Q", "Please don't cheat!\n" + 
+		# 		"You are running a modified client program.");
+		# 	waiting_player.send("Q", "The other playing is caught" + 
+		# 		"cheating. You win!");
+		# 	# Throw an error to finish this game
+		# 	raise Exception;
+
 		# Check if this will result in a win
 		result = self.check_winner(moving_player);
 		if(result >= 0):
