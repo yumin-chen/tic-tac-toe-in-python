@@ -190,11 +190,15 @@ class TTTClientGame(TTTClient):
 			elif(command == "W"):
 				# If this player wins
 				print("You WIN!");
+				# Draw winning path
+				self.__draw_winning_path__(self.s_recv(4, "P"));
 				# Break the loop and finish
 				break;
 			elif(command == "L"):
 				# If this player loses
 				print("You lose.");
+				# Draw winning path
+				self.__draw_winning_path__(self.s_recv(4, "P"));
 				# Break the loop and finish
 				break;
 			else:
@@ -247,6 +251,17 @@ class TTTClientGame(TTTClient):
 
 		# Send the position back to the server
 		self.s_send("i", str(position));
+
+	def __draw_winning_path__(self, winning_path):
+		"""(Private) Shows to the user the path that has caused the game to 
+		win or lose. This function might be overridden by the GUI program."""
+		# Generate a new human readable path string
+		readable_path = "";
+		for c in winning_path:
+			readable_path += str(int(c) + 1) + ", "
+		
+		print("The path is: " + readable_path[:-2]);
+
 
 	def show_board_pos(s):
 		"""(Static) Converts the empty positions " " (a space) in the board 

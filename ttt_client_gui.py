@@ -221,6 +221,10 @@ class CanvasSquare(CanvasWidget):
 		super().enable();
 		self.canvas.itemconfig(self.tag_name, fill=self.normal_color);
 
+	def set_color(self, new_color):
+		self.normal_color = new_color;
+		self.canvas.itemconfig(self.tag_name, fill=self.normal_color);
+
 class BaseScene(tkinter.Canvas):
 	"""(Abstract) The base class for all scenes. BaseScene deals with
 	general widgets and handles window resizing event."""
@@ -589,6 +593,16 @@ class MainGameScene(BaseScene):
 						tags="board_content");
 
 
+	def draw_winning_path(self, winning_path):
+		"""Marks on the board the path that leads to the win result."""
+		# Loop through the board
+		for i in range(0, self.board_grids_power ** 2):
+			if str(i) in winning_path: 
+				# If the current item is in the winning path
+				self.squares[i].set_color("#db2631");
+
+
+
 class TTTClientGameGUI(TTTClientGame):
 	"""The client implemented with GUI."""
 
@@ -672,6 +686,13 @@ class TTTClientGameGUI(TTTClientGame):
 		# Set user making move to be false
 		self.making_move = False;
 
+	def __draw_winning_path__(self, winning_path):
+		"""(Override) Shows to the user the path that has caused the game to 
+		win or lose."""
+		# Print the command-line winning path for debugging purpose
+		super().__draw_winning_path__(winning_path);
+		# Draw GUI the winning path
+		self.canvas.draw_winning_path(winning_path);
 		
 # Define the main program
 def main():

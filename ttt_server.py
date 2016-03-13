@@ -304,7 +304,7 @@ class Game:
 		# 	raise Exception;
 
 		# Check if this will result in a win
-		result = self.check_winner(moving_player);
+		result, winning_path = self.check_winner(moving_player);
 		if(result >= 0):
 			# If there is a result
 			# Send back the latest board content
@@ -324,6 +324,9 @@ class Game:
 				# Send the players the result
 				moving_player.send("C", "W");
 				waiting_player.send("C", "L");
+				# Send the players the winning path
+				moving_player.send("P", winning_path);
+				waiting_player.send("P", winning_path);
 				print("Player " + str(self.player1.id) + " beats player " 
 					+ str(self.player2.id) + " and finishes the game.");
 				return True;
@@ -336,32 +339,32 @@ class Game:
 
 		# Check columns
 		if(len(set([s[0], s[1], s[2], player.role])) == 1):
-			return 1;
+			return 1, "012";
 		if(len(set([s[3], s[4], s[5], player.role])) == 1):
-			return 1;
+			return 1, "345";
 		if(len(set([s[6], s[7], s[8], player.role])) == 1):
-			return 1;
+			return 1, "678";
 
 		# Check rows
 		if(len(set([s[0], s[3], s[6], player.role])) == 1):
-			return 1;
+			return 1, "036";
 		if(len(set([s[1], s[4], s[7], player.role])) == 1):
-			return 1;
+			return 1, "147";
 		if(len(set([s[2], s[5], s[8], player.role])) == 1):
-			return 1;
+			return 1, "258";
 
 		# Check diagonal
 		if(len(set([s[0], s[4], s[8], player.role])) == 1):
-			return 1;
+			return 1, "048";
 		if(len(set([s[2], s[4], s[6], player.role])) == 1):
-			return 1;
+			return 1, "246";
 
 		# If there's no empty position left, draw
 		if " " not in s:
-			return 0;
+			return 0, "";
 
 		# The result cannot be determined yet
-		return -1;
+		return -1, "";
 
 # Define the main program
 def main():
