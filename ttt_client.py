@@ -247,7 +247,6 @@ class TTTClientGame(TTTClient):
 
 		# Send the position back to the server
 		self.s_send("i", str(position));
-		return;
 
 	def show_board_pos(s):
 		"""(Static) Converts the empty positions " " (a space) in the board 

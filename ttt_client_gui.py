@@ -473,7 +473,7 @@ class MainGameScene(BaseScene):
 		board_line_width determines the border line width."""
 
 		# Create squares for the grid board
-		self.squares = [None] * self.board_grids_power * self.board_grids_power;
+		self.squares = [None] * self.board_grids_power ** 2;
 		for i in range(0, self.board_grids_power):
 			for j in range(0, self.board_grids_power):
 				self.squares[i+j*3] = self.create_square(
@@ -534,12 +534,10 @@ class MainGameScene(BaseScene):
 
 	def update_board_content(self, board_string):
 		"""Redraws the board content with new board_string."""
-		if(len(board_string) != 
-			self.board_grids_power * self.board_grids_power):
+		if(len(board_string) != self.board_grids_power ** 2):
 			# If board_string is in valid
 			print("The board string should be " + 
-				str(self.board_grids_power * self.board_grids_power) 
-				+ " characters long.");
+				str(self.board_grids_power ** 2) + " characters long.");
 			# Throw an error
 			raise Exception;
 
@@ -622,6 +620,9 @@ class TTTClientGameGUI(TTTClientGame):
 
 	def __update_board__(self, command, board_string):
 		"""(Override) Updates the board."""
+		# Print the command-line board for debugging purpose
+		super().__update_board__(command, board_string);
+		# Draw the GUI board
 		self.canvas.update_board_content(board_string);
 		if(command == "D"):
 			# If the result is a draw
@@ -636,8 +637,11 @@ class TTTClientGameGUI(TTTClientGame):
 	def __player_move__(self, board_string):
 		"""(Override) Lets the user to make a move and sends it back to the
 		server."""
-		for i in range(0, self.canvas.board_grids_power * 
-			self.canvas.board_grids_power):
+
+		# Set user making move to be true
+		self.making_move = True;
+
+		for i in range(0, self.canvas.board_grids_power ** 2):
 			# Check the board content and see if it's empty
 			if(board_string[i] == " "):
 				# Enable those squares to make them clickable
@@ -646,7 +650,7 @@ class TTTClientGameGUI(TTTClientGame):
 				self.canvas.squares[i].command = (lambda self=self, i=i: 
 					self.__move_made__(i));
 
-		while self.canvas.squares[0].is_enabled():
+		while self.making_move:
 			# Wait until the user has clicked on something
 			pass;
 
@@ -656,15 +660,17 @@ class TTTClientGameGUI(TTTClientGame):
 
 		print("User chose " + str(index + 1));
 
-		# Send the position back to the server
-		self.s_send("i", str(index + 1));
-
-		for i in range(0, self.canvas.board_grids_power * 
-			self.canvas.board_grids_power):
+		for i in range(0, self.canvas.board_grids_power ** 2):
 			# Disable those squares to make them unclickable
 			self.canvas.squares[i].disable();
 			# Remove their commands
 			self.canvas.squares[i].command = None;
+
+		# Send the position back to the server
+		self.s_send("i", str(index + 1));
+
+		# Set user making move to be false
+		self.making_move = False;
 
 		
 # Define the main program

@@ -226,9 +226,7 @@ class Player:
 		# Check if "e" gets sent back
 		if(self.recv(2, "e") != "z"):
 			# If the client didn't confirm, the connection might be lost
-			print("Connection echo test with player" + str(self.id) + " failed." );
 			self.__connection_lost();
-		print("Connection echo test with player" + str(self.id) + " is OK." );
 
 	def send_match_info(self):
 		"""Sends a the matched information to the client, which includes
