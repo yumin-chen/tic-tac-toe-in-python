@@ -453,11 +453,11 @@ class MainGameScene(BaseScene):
 
 		# Create the player_self_text
 		player_self_text = self.create_text(96, 128, font="Helvetica 16", 
-			fill=C_COLOR_BLUE_DARK, tags=("player_self_text"));
+			fill=C_COLOR_BLUE_DARK, tags=("player_self_text"), anchor="n");
 		# Create the player_match_text
 		player_match_text = self.create_text(C_WINDOW_WIDTH - 96, 128, 
 			font="Helvetica 16", fill=C_COLOR_BLUE_DARK, 
-			tags=("player_match_text"));
+			tags=("player_match_text"), anchor="n");
 
 		# Create the notif text
 		notif_text = self.create_text(8, C_WINDOW_HEIGHT-8, anchor="sw",
@@ -592,7 +592,6 @@ class MainGameScene(BaseScene):
 						fill=C_COLOR_BLUE_DARK, width=4,
 						tags="board_content");
 
-
 	def draw_winning_path(self, winning_path):
 		"""Marks on the board the path that leads to the win result."""
 		# Loop through the board
@@ -600,8 +599,6 @@ class MainGameScene(BaseScene):
 			if str(i) in winning_path: 
 				# If the current item is in the winning path
 				self.squares[i].set_color("#db2631");
-
-
 
 class TTTClientGameGUI(TTTClientGame):
 	"""The client implemented with GUI."""
@@ -621,16 +618,17 @@ class TTTClientGameGUI(TTTClientGame):
 		self.canvas.set_notif_text("Server connected. \n" +
 			"Waiting for other players to join...");
 
-
 	def __game_started__(self):
 		"""(Override) Updates the GUI to notify the user that the game is
 		getting started."""
 		self.canvas.set_notif_text("Game started. " + 
 			"You are the \"" + self.role + "\"");
 		self.canvas.itemconfig("player_self_text", 
-			text="Player " + str(self.player_id));
+			text="You:\n\nPlayer " + str(self.player_id) + 
+			"\n\nRole: " + self.role);
 		self.canvas.itemconfig("player_match_text", 
-			text="Player " + str(self.match_id));
+			text="Opponent:\n\nPlayer " + str(self.match_id) + 
+			"\n\nRole: " + ("O" if self.role == "X" else "X") );
 
 	def __update_board__(self, command, board_string):
 		"""(Override) Updates the board."""
@@ -667,6 +665,22 @@ class TTTClientGameGUI(TTTClientGame):
 		while self.making_move:
 			# Wait until the user has clicked on something
 			pass;
+
+	def __player_wait__(self):
+		"""(Override) Lets the user know it's waiting for the other player 
+		to make a move."""
+		# Print the command-line notif for debugging purpose
+		super().__player_wait__();
+		# Set the notif text on the GUI
+		self.canvas.set_notif_text("Waiting for the other player to make a move...");
+
+	def __opponent_move_made__(self, move):
+		"""(Override) Shows the user the move that the other player has taken."""
+		# Print the command-line notif for debugging purpose
+		super().__opponent_move_made__(move);
+		# Set the notif text on the GUI
+		self.canvas.set_notif_text("Your opponent took up number " + str(move) + ".\n"
+			"It's now your turn, please make a move.");
 
 	def __move_made__(self, index):
 		"""(Private) This function is called when the user clicks on the 

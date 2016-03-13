@@ -3,6 +3,10 @@ References
 Here is a list of external sources that I learned from when I was doing this project.
 
 
+* Stack overflow: Does Python have a ternary conditional operator?
+	<http://stackoverflow.com/questions/394809/does-python-have-a-ternary-conditional-operator> 
+
+
 * Python: Lambda Functions  
 	<http://www.secnetix.de/olli/Python/lambda_functions.hawk>  
 

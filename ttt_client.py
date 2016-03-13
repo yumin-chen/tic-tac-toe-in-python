@@ -179,10 +179,10 @@ class TTTClientGame(TTTClient):
 				self.__player_move__(board_content);
 			elif(command == "N"):
 				# If the player needs to just wait
-				print("Waiting for the other player to make a move...");
+				self.__player_wait__();
 				# Get the move the other player made from the server 
 				move = self.s_recv(2, "I");
-				print("Your opponent took up number " + str(move));
+				self.__opponent_move_made__(move);
 			elif(command == "D"):
 				# If the result is a draw
 				print("It's a draw.");
@@ -207,7 +207,6 @@ class TTTClientGame(TTTClient):
 				print("Error: unknown message was sent from the server");
 				# And finish
 				break;
-
 
 	def __update_board__(self, command, board_string):
 		"""(Private) Updates the board. This function might be overridden by
@@ -252,6 +251,16 @@ class TTTClientGame(TTTClient):
 		# Send the position back to the server
 		self.s_send("i", str(position));
 
+	def __player_wait__(self):
+		"""(Private) Lets the user know it's waiting for the other player to
+		make a move. This function might be overridden by the GUI program."""
+		print("Waiting for the other player to make a move...");
+
+	def __opponent_move_made__(self, move):
+		"""(Private) Shows the user the move that the other player has taken. 
+		This function might be overridden by the GUI program."""
+		print("Your opponent took up number " + str(move));
+
 	def __draw_winning_path__(self, winning_path):
 		"""(Private) Shows to the user the path that has caused the game to 
 		win or lose. This function might be overridden by the GUI program."""
@@ -259,7 +268,7 @@ class TTTClientGame(TTTClient):
 		readable_path = "";
 		for c in winning_path:
 			readable_path += str(int(c) + 1) + ", "
-		
+
 		print("The path is: " + readable_path[:-2]);
 
 
