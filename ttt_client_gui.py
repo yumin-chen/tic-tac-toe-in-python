@@ -102,6 +102,9 @@ class CanvasWidget:
 		"""Configures the widget's options."""
 		return self.canvas.itemconfig(self.tag_name, **kwargs);
 
+	def delete(self):
+		self.canvas.delete(self.tag_name);
+
 class CanvasClickableLabel(CanvasWidget):
 	"""A clickable label that shows text and can respond to user 
 	click events."""
@@ -221,9 +224,8 @@ class CanvasSquare(CanvasWidget):
 		super().enable();
 		self.canvas.itemconfig(self.tag_name, fill=self.normal_color);
 
-	def set_color(self, new_color):
-		self.normal_color = new_color;
-		self.canvas.itemconfig(self.tag_name, fill=self.normal_color);
+	def set_temp_color(self, color):
+		self.canvas.itemconfig(self.tag_name, fill=color);
 
 class BaseScene(tkinter.Canvas):
 	"""(Abstract) The base class for all scenes. BaseScene deals with
@@ -598,7 +600,32 @@ class MainGameScene(BaseScene):
 		for i in range(0, self.board_grids_power ** 2):
 			if str(i) in winning_path: 
 				# If the current item is in the winning path
-				self.squares[i].set_color("#db2631");
+				self.squares[i].set_temp_color("#db2631");
+
+
+	def show_restart(self):
+		"""Creates a restart button for the user to choose to restart a 
+		new game."""
+		self.restart_btn = self.create_button(C_WINDOW_WIDTH/2, C_WINDOW_HEIGHT - 32, 
+			"Restart", C_COLOR_BLUE_DARK, C_COLOR_BLUE_LIGHT, C_COLOR_BLUE_LIGHT, 
+			C_COLOR_BLUE_DARK);
+		self.restart_btn.command = self.__on_restart_clicked__;
+
+
+	def __on_restart_clicked__(self):
+		"""(Private) Switches back to the welcome scene when the return 
+		button is clicked."""
+		# Clear everything from the past game
+		for i in range(0, self.board_grids_power ** 2):
+			self.squares[i].set_temp_color(C_COLOR_BLUE_LIGHT);
+		self.update_board_content(" " * self.board_grids_power ** 2);
+		self.itemconfig("player_self_text", text="");
+		self.itemconfig("player_match_text", text="");
+		# Delete the button from the scene
+		self.restart_btn.delete();
+		# Start a new thread to deal with the client communication
+		threading.Thread(target=self.__start_client__).start();
+
 
 class TTTClientGameGUI(TTTClientGame):
 	"""The client implemented with GUI."""
@@ -639,12 +666,18 @@ class TTTClientGameGUI(TTTClientGame):
 		if(command == "D"):
 			# If the result is a draw
 			self.canvas.set_notif_text("It's a draw.");
+			# Show the restart button
+			self.canvas.show_restart();
 		elif(command == "W"):
 			# If this player wins
 			self.canvas.set_notif_text("You WIN!");
+			# Show the restart button
+			self.canvas.show_restart();
 		elif(command == "L"):
 			# If this player loses
 			self.canvas.set_notif_text("You lose.");
+			# Show the restart button
+			self.canvas.show_restart();
 
 	def __player_move__(self, board_string):
 		"""(Override) Lets the user to make a move and sends it back to the
