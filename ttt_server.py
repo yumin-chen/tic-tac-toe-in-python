@@ -310,7 +310,10 @@ class Game:
 		if(self.board_content[move - 1] == " "):
 			# Write the it into the board
 		 	self.board_content[move - 1] = moving_player.role;
-		# else:
+		else:
+			logging.warning("Player " + str(moving_player.id) + 
+				" is attempting to take a position that's already " + 
+				"been taken.");
 		# 	# This player is attempting to take a position that's already
 		# 	# taken. HE IS CHEATING, KILL HIM!
 		# 	moving_player.send("Q", "Please don't cheat!\n" + 
