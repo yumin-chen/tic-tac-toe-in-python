@@ -6,6 +6,21 @@ import threading
 import time
 # Import command line arguments
 from sys import argv
+# Import logging
+import logging
+
+
+# Set up logging to file 
+logging.basicConfig(level=logging.DEBUG,
+	format='[%(asctime)s] %(levelname)s: %(message)s',
+	datefmt='%Y-%m-%d %H:%M:%S',
+	filename='ttt_server.log');
+# Define a Handler which writes INFO messages or higher to the sys.stderr
+# This will print all the INFO messages or higer at the same time
+console = logging.StreamHandler();
+console.setLevel(logging.INFO);
+# Add the handler to the root logger
+logging.getLogger('').addHandler(console);
 
 class TTTServer:
 	"""TTTServer deals with networking and communication with the TTTClient."""
@@ -24,15 +39,15 @@ class TTTServer:
 				# The empty string "" is a symbolic name 
 				# meaning all available interfaces
 				self.server_socket.bind(("", int(port_number)));
-				print("Reserved port " + str(port_number));
+				logging.info("Reserved port " + str(port_number));
 				# Start listening to the binded address
 				self.server_socket.listen(1);
-				print("Listening to port " + str(port_number));
+				logging.info("Listening to port " + str(port_number));
 				# Break the while loop if no error is caught
 				break;
 			except:
 				# Caught an error
-				print("There is an error when trying to bind " + 
+				logging.warning("There is an error when trying to bind " + 
 					str(port_number));
 				# Ask the user what to do with the error
 				choice = input("[A]bort, [C]hange port, or [R]etry?");
@@ -67,7 +82,7 @@ class TTTServerGame(TTTServer):
 		while True:
 			# Accept a connection from a client
 			connection, client_address = self.server_socket.accept();
-			print("Received connection from ", client_address);
+			logging.info("Received connection from " + str(client_address));
 
 			# Initialize a new Player object to store all the client's infomation
 			new_player = Player(connection);
@@ -79,7 +94,7 @@ class TTTServerGame(TTTServer):
 				threading.Thread(target=self.__client_thread, 
 					args=(new_player,)).start();
 			except:
-				print("Failed to create thread.");
+				logging.error("Failed to create thread.");
 
 	def __client_thread(self, player):
 		"""(Private) This is the client thread."""
@@ -91,7 +106,8 @@ class TTTServerGame(TTTServer):
 			# Send the client didn't confirm the message
 			if(player.recv(2, "c") != "1"):
 				# An error happened
-				print("Client didn't confirm the initial message.");
+				logging.warning("Client " + str(player.id) + 
+					" didn't confirm the initial message.");
 				# Finish 
 				return;
 
@@ -120,8 +136,9 @@ class TTTServerGame(TTTServer):
 						# Game starts
 						new_game.start();
 					except:
-						print("Game between " + str(new_game.player1.id) + " and " + 
-							str(new_game.player2.id) + " is finished unexpectedly.");
+						logging.warning("Game between " + str(new_game.player1.id) + 
+							" and " + str(new_game.player2.id) + 
+							" is finished unexpectedly.");
 					# End this thread
 					return;
 		except:
@@ -196,7 +213,7 @@ class Player:
 			# If received a quit signal from the client
 			if(msg[0] == "q"):
 				# Print why the quit signal
-				print(msg[1:]);
+				logging.info(msg[1:]);
 				# Connection lost
 				self.__connection_lost();
 			# If the message is not the expected type
@@ -245,7 +262,7 @@ class Player:
 	def __connection_lost(self):
 		"""(Private) This function will be called when the connection is lost."""
 		# This player has lost connection with the server
-		print("Player " + str(self.id) + " connection lost.");
+		logging.warning("Player " + str(self.id) + " connection lost.");
 		# Tell the other player that the game is finished
 		try:
 			self.match.send("Q", "The other player has lost connection" + 
@@ -265,8 +282,8 @@ class Game:
 		self.player2.send_match_info();
 
 		# Print the match info onto screen 
-		print("Player " + str(self.player1.id) + " is matched with player " 
-			+ str(self.player2.id));
+		logging.info("Player " + str(self.player1.id) + 
+			" is matched with player " + str(self.player2.id));
 
 		while True:
 			# Player 1 move
@@ -376,14 +393,17 @@ def main():
 		# Ask the user to input port number
 		port_number = input("Please enter the port:");
 
-	# Initialize the server object
-	server = TTTServerGame();
-	# Bind the server with the port 
-	server.bind(port_number);
-	# Start the server
-	server.start();
-	# Close the server
-	server.close();
+	try:
+		# Initialize the server object
+		server = TTTServerGame();
+		# Bind the server with the port 
+		server.bind(port_number);
+		# Start the server
+		server.start();
+		# Close the server
+		server.close();
+	except BaseException as e:
+		logging.critical("Server critical failure.\n" + str(e));
 
 if __name__ == "__main__":
 	# If this script is running as a standalone program,
