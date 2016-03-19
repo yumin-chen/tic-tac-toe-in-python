@@ -773,7 +773,8 @@ def main():
 		root.iconbitmap("res/icon.ico");
 	except:	
 		# An error has been caught when setting the icon
-		tkinter.messagebox.showerror("Error", "Can't set the window icon.");
+		# tkinter.messagebox.showerror("Error", "Can't set the window icon.");
+		print("Can't set the window icon.");
 
 	# Initialize the welcome scene
 	welcome_scene = WelcomeScene(root);
