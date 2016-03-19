@@ -11,21 +11,25 @@ This project is originally for my Python Assignment in Semester 6 Computer Syste
 
 Manual
 ------------------------
-To start the server, run the ttt_server.py with  
+[Tic Tac Toe Online in Python][2] is a cross-platform game that should work on any modern desktop operating systems. The instructions below are demonstrated on a Linux distro, but you should be able to run this on Windows and Mac OS X as well.  
+All the Python scripts in this project are written for Python 3.x and above.  
 
-	ttt_server.py [port_number]
+To start the server, please read [docs/MANUAL-SERVER.md](docs/MANUAL-SERVER.md).  
 
-Where the parameter *port_number* is a 16-bit unsigned integer port number used for the TCP/IP protocol addressing.  
-![Server](/screenshots/man-start-server.png?raw=true "Server")
+To learn about the command-line based client script, please read [docs/MANUAL-CLIENT.md](docs/MANUAL-CLIENT.md).  
 
-To start the client, run the ttt_client.py with 
+To use the client GUI, directly run ttt_client_gui.py with python3.
 
-	ttt_client.py [server_address] [port_number]
+	python3 ttt_client_gui.py
 
-Where the parameter *server_address* is a string that represents a IPv4 address for the server; *port_number* is the port number that will be used to connect to the server.  
-![Client](/screenshots/man-start-client.png?raw=true "Client")
 
-To start the game, there needs to be more than one players. Start another client with the same parameters to connect to the same running server, and the game will get started.
+Screenshots
+------------------------
+![Welcome Scene](/screenshots/gui-welcome-scene.png?raw=true "Welcome Scene")  
+
+![Main Game Scene](/screenshots/gui-main-game-scene.png?raw=true "Main Game Scene")  
+
+![About Scene](/screenshots/gui-about-scene.png?raw=true "About Scene")  
 
 
 References
@@ -48,6 +52,7 @@ Contact
 ------------------------
 * CharmySoft: [*http://www.CharmySoft.com/*][1]  
 * About: [*http://www.CharmySoft.com/about.htm*][3]  
+* Email: [*Charlie@CharmySoft.com*](mailto:Charlie@CharmySoft.com)  
 
 [1]: http://www.CharmySoft.com/ "CharmySoft"
 [2]: http://www.CharmySoft.com/app/ttt-python.htm "Tic Tac Toe Online in Python"
