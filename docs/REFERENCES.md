@@ -3,8 +3,12 @@ References
 Here is a list of external sources that I learned from when I was doing this project.
 
 
+* Python Documentation: Logging Cookbook  
+	<http://docs.python.org/2/howto/logging-cookbook.html>  
+
+
 * Stack overflow: Does Python have a ternary conditional operator?
-	<http://stackoverflow.com/questions/394809/does-python-have-a-ternary-conditional-operator> 
+	<http://stackoverflow.com/questions/394809/does-python-have-a-ternary-conditional-operator>  
 
 
 * Python: Lambda Functions  
