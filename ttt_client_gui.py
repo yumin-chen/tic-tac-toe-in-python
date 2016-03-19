@@ -536,6 +536,9 @@ class MainGameScene(BaseScene):
 		button is clicked."""
 		# Clear screen
 		self.__clear_screen();
+		# Set the client to None so the client thread will stop due to error
+		self.client.client_socket = None;
+		self.client = None;
 		# Switch to the welcome scene
 		self.pack_forget();
 		self.welcome_scene.pack();
