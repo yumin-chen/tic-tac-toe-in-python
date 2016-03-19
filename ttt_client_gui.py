@@ -50,13 +50,13 @@ class CanvasWidget:
 		the widget."""
 		if(self.__disabled__):
 			return False;
-		try:
+		if self.command is not None:
 			self.command();
 			return True;
-		except AttributeError:
+		else:
 			print("Error: " + self.__class__.__name__ + " " + 
 				self.id + " does not have a command");
-			raise;
+			raise AttributeError;
 		return False;
 
 	def set_hoverable(self, hoverable):
@@ -465,6 +465,9 @@ class MainGameScene(BaseScene):
 		notif_text = self.create_text(8, C_WINDOW_HEIGHT-8, anchor="sw",
 			font="Helvetica 16", fill=C_COLOR_BLUE_DARK, tags=("notif_text"));
 
+		# Set restart button to None so it won't raise AttributeError
+		self.restart_btn = None;
+
 		# Tag all of the drawn widgets for later reference
 		self.addtag_all("all");
 
@@ -531,6 +534,9 @@ class MainGameScene(BaseScene):
 	def __on_return_clicked__(self):
 		"""(Private) Switches back to the welcome scene when the return 
 		button is clicked."""
+		# Clear screen
+		self.__clear_screen();
+		# Switch to the welcome scene
 		self.pack_forget();
 		self.welcome_scene.pack();
 
@@ -611,18 +617,25 @@ class MainGameScene(BaseScene):
 			C_COLOR_BLUE_DARK);
 		self.restart_btn.command = self.__on_restart_clicked__;
 
-
-	def __on_restart_clicked__(self):
-		"""(Private) Switches back to the welcome scene when the return 
-		button is clicked."""
+	def __clear_screen(self):
+		"""(Private) Clears all the existing content from the old game."""
 		# Clear everything from the past game
 		for i in range(0, self.board_grids_power ** 2):
+			self.squares[i].disable();
 			self.squares[i].set_temp_color(C_COLOR_BLUE_LIGHT);
 		self.update_board_content(" " * self.board_grids_power ** 2);
 		self.itemconfig("player_self_text", text="");
 		self.itemconfig("player_match_text", text="");
 		# Delete the button from the scene
-		self.restart_btn.delete();
+		if self.restart_btn is not None:
+			self.restart_btn.delete();
+			self.restart_btn = None;
+
+	def __on_restart_clicked__(self):
+		"""(Private) Switches back to the welcome scene when the return 
+		button is clicked."""
+		# Clear screen
+		self.__clear_screen();
 		# Start a new thread to deal with the client communication
 		threading.Thread(target=self.__start_client__).start();
 
