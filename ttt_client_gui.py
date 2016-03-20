@@ -10,6 +10,8 @@ import webbrowser
 from ttt_client import TTTClientGame
 # Import multi-threading module
 import threading
+# Import socket
+import socket
 
 # Constants 
 C_WINDOW_WIDTH = 640;
@@ -523,10 +525,20 @@ class MainGameScene(BaseScene):
 		self.client = TTTClientGameGUI();
 		# Gives the client a reference to self 
 		self.client.canvas = self;
+		try:
+			# Get the host IP address
+			host = socket.gethostbyname('s.CharmySoft.com');
+		except:
+			# If can't get the host IP from the domain
+			tkinter.messagebox.showerror("Error", "Failed to get the game "+ 
+				"host address from the web domain.\n" + 
+				"Plase check your connection.");
+			self.__on_return_clicked__();
+			return;
 		# Set the notif text
-		self.set_notif_text("Connecting to the game server...");
+		self.set_notif_text("Connecting to the game server " + host + "...");
 		# Connect to the server
-		if(self.client.connect("localhost", "8080")):
+		if(self.client.connect(host, "8080")):
 			# If connected to the server
 			# Start the game
 			self.client.start_game();
@@ -653,7 +665,7 @@ class TTTClientGameGUI(TTTClientGame):
 		couldn't be established."""
 		# Write the notif text
 		self.canvas.set_notif_text("Can't connect to the game server.\n" + 
-			"Plase check your connection.");
+			"It might be down or blocked by your firewall.");
 		# Throw an error and finish the client thread
 		raise Exception;
 
