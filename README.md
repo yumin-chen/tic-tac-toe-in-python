@@ -14,9 +14,9 @@ Manual
 ------------------------
 [Tic Tac Toe Online in Python][2] is a cross-platform game that should work on any modern desktop operating systems. The instructions below are demonstrated on a Linux distro, but you should be able to run this on Windows and Mac OS X as well.  
 
-All the Python scripts in this project are written for Python 3.x and above. The client GUI requires Python Tkinter module. You need to set up the Python 3 environment before you start.  
+All the Python scripts in this project are written for Python 3.x. The client GUI requires Python Tkinter module. You need to set up the Python 3 environment before you start.  
 
-To start the server, please read [docs/MANUAL-SERVER.md](docs/MANUAL-SERVER.md).  
+To set up the server, please read [docs/MANUAL-SERVER.md](docs/MANUAL-SERVER.md).  
 
 To learn about the command-line based client script, please read [docs/MANUAL-CLIENT.md](docs/MANUAL-CLIENT.md).  
 
