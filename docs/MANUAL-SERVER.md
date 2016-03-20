@@ -1,8 +1,24 @@
 Manual for Tic-Tac-Toe Server
 ========================
-To start the server, run ttt_server.py with  
+To set up the server, you can run the following shell commands.  
+```bash
+# Change this to your desired path
+TTT_SERVER_SCRIPT_PATH="/ttt_server.py"
 
-	ttt_server.py [port_number]
+# Download the server script to your specified destination
+sudo wget -O $TTT_SERVER_SCRIPT_PATH http://github.com/CharmySoft/tic-tac-toe-in-python/raw/master/ttt_server.py
+
+# Download the upstart configuration script
+sudo wget -O /etc/init/ttt-service.conf http://github.com/CharmySoft/tic-tac-toe-in-python/raw/master/ttt-service.conf
+
+# Update the server script path on the downloaded upstart conf file
+sudo sed -i 's|'/ttt_server.py'|'${TTT_SERVER_SCRIPT_PATH}'|' /etc/init/ttt-service.conf
+```
+After setting up the upstart configuration script, if you have installed [upstart](http://upstart.ubuntu.com/) on your server machine, the server script will automatically run on system start up. And respawn will start it back up if it is killed or exits non-zero (like an uncaught exception), so the server script can always keep running on your server.  
+
+If you want to test the server script on your local machine, you can run [ttt_server.py](http://github.com/CharmySoft/tic-tac-toe-in-python/raw/master/ttt_server.py) with python3:  
+
+	python3 ttt_server.py [port_number]
 
 Where the argument *port_number* is a 16-bit unsigned integer port number used for the TCP/IP protocol addressing. You can also run the server script with no arguments, and you will then be asked to enter the and port number.  
 
