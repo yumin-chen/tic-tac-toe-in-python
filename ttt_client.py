@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 # Import the socket module
 import socket
 # Import command line arguments
