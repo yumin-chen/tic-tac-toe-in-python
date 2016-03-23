@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION='1.0'
-PACKAGE_REVISION='1'
+PACKAGE_REVISION='3'
 # Make a temperary directory for the debian package
 mkdir tttpy_${VERSION}-${PACKAGE_REVISION}
 chmod 0755 tttpy_${VERSION}-${PACKAGE_REVISION}
@@ -13,15 +13,18 @@ cat >> DEBIAN/control << EOM
 Package: tttpy
 Version: ${VERSION}-${PACKAGE_REVISION}
 Section: games 
-Installed-Size: 226
+Installed-Size: 228
 Maintainer: Charlie Chen <Charlie@CharmySoft.com>
 Homepage: http://www.CharmySoft.com/app/ttt-python.htm
 Priority: optional
 Architecture: all
-Depends: python3
-Description: Tic-Tac-Toe Online
- Simple yet fun noughts and crosses game online
-
+Depends: python3, python3-tk
+Description: Simple yet fun noughts and crosses online game
+ Tic Tac Toe Online is a simple yet fun noughts and crosses online game. It is a socket-based Client-Server multi-player game that was developed using Python and its Tkinter GUI interface.
+ The game allows multiple players to connect to the server and play Tic-Tac-Toe online with other players.
+ Tic Tac Toe Online is open source under the MIT LIcense.
+ Please visit the project page to find out more:
+ http://CharmySoft.com/app/ttt-python.htm
 EOM
 
 # Create 'usr' folder
