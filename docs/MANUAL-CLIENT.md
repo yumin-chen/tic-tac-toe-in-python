@@ -1,6 +1,6 @@
 Tic-Tac-Toe Client Manual
 ========================
-<small>Please read the updated version at [http://chenyumin.com/p/tic-tac-toe-client-manual](http://chenyumin.com/p/tic-tac-toe-client-manual).</small>
+<sup>Please read the updated version at [http://chenyumin.com/p/tic-tac-toe-client-manual](http://chenyumin.com/p/tic-tac-toe-client-manual).</sup>
 
 These are the instructions to use the command-line based Tic-Tac-Toe Client program. For the GUI version, please read [here](../README.md).  
 

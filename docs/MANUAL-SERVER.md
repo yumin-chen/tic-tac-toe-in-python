@@ -1,6 +1,6 @@
 Tic-Tac-Toe Server Manual
 ========================
-<small>Please read the updated version at [The Server Manual](http://chenyumin.com/p/tic-tac-toe-server-manual) or [docs/MANUAL-SERVER.md](docs/MANUAL-SERVER.md).</small>
+<sup>Please read the updated version at [The Server Manual](http://chenyumin.com/p/tic-tac-toe-server-manual).</sup>
 
 To set up the server, you can run the following shell commands.  
 ```bash
