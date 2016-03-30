@@ -1,5 +1,7 @@
-Manual for Tic-Tac-Toe Client
+Tic-Tac-Toe Client Manual
 ========================
+<small>Please read the updated version at [http://chenyumin.com/p/tic-tac-toe-client-manual](http://chenyumin.com/p/tic-tac-toe-client-manual).</small>
+
 These are the instructions to use the command-line based Tic-Tac-Toe Client program. For the GUI version, please read [here](../README.md).  
 
 To start the client, run [ttt_client.py](http://github.com/CharmySoft/tic-tac-toe-in-python/raw/master/ttt_client.py) with Python 3:  
